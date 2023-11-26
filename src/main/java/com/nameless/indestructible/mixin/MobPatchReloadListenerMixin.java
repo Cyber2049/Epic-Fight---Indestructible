@@ -158,47 +158,42 @@ public class MobPatchReloadListenerMixin {
         List<String[]> loggerNote = Lists.newArrayList();
 
         switch (type) {
-            case "guard_break":
-                if(!args.contains("guard_break")){
-                    loggerNote.add(new String[] {"guard_break", "invert", "boolean", ""});
+            case "guard_break" -> {
+                if (!args.contains("guard_break")) {
+                    loggerNote.add(new String[]{"guard_break", "invert", "boolean", ""});
                 }
-                predicate = new ExtraPredicate.TargetIsGuardBreak<T>(args.getBoolean("invert"));
-                break;
-
-            case "knock_down":
-                if(!args.contains("knock_down")){
-                    loggerNote.add(new String[] {"knock_down", "invert", "boolean", ""});
+                predicate = new ExtraPredicate.TargetIsGuardBreak<>(args.getBoolean("invert"));
+            }
+            case "knock_down" -> {
+                if (!args.contains("knock_down")) {
+                    loggerNote.add(new String[]{"knock_down", "invert", "boolean", ""});
                 }
-                predicate = new ExtraPredicate.TargetIsKnockDown<T>(args.getBoolean("invert"));
-                break;
-
-            case "attack_level":
-                if(!args.contains("min",3)){
-                    loggerNote.add(new String[] {"level","min","int",""});
+                predicate = new ExtraPredicate.TargetIsKnockDown<>(args.getBoolean("invert"));
+            }
+            case "attack_level" -> {
+                if (!args.contains("min", 3)) {
+                    loggerNote.add(new String[]{"level", "min", "int", ""});
                 }
-                if(!args.contains("max",3)){
-                    loggerNote.add(new String[] {"level","max","int",""});
+                if (!args.contains("max", 3)) {
+                    loggerNote.add(new String[]{"level", "max", "int", ""});
                 }
-                predicate = new ExtraPredicate.TargetWithinState<>(args.getInt("min"),args.getInt("max"));
-                break;
-
-            case "stamina":
+                predicate = new ExtraPredicate.TargetWithinState<>(args.getInt("min"), args.getInt("max"));
+            }
+            case "stamina" -> {
                 if (!args.contains("stamina", 6)) {
-                    loggerNote.add(new String[] {"stamina", "stamina", "double", "0.0F"});
+                    loggerNote.add(new String[]{"stamina", "stamina", "double", "0.0F"});
                 }
-
                 if (!args.contains("comparator", 8)) {
-                    loggerNote.add(new String[] {"stamina", "comparator", "string", ""});
+                    loggerNote.add(new String[]{"stamina", "comparator", "string", ""});
                 }
-                predicate = new ExtraPredicate.SelfStamina<T>((float) args.getDouble("stamina"),CombatBehaviors.Health.Comparator.valueOf(args.getString("comparator").toUpperCase(Locale.ROOT)));
-                break;
-
-            case "using_item":
-                if(!args.contains("edible")){
-                    loggerNote.add(new String[] {"using_item", "edible", "boolean", ""});
+                predicate = new ExtraPredicate.SelfStamina<>((float) args.getDouble("stamina"), CombatBehaviors.Health.Comparator.valueOf(args.getString("comparator").toUpperCase(Locale.ROOT)));
+            }
+            case "using_item" -> {
+                if (!args.contains("edible")) {
+                    loggerNote.add(new String[]{"using_item", "edible", "boolean", ""});
                 }
-                predicate = new ExtraPredicate.TargetIsUsingItem<T>(args.getBoolean("edible"));
-                break;
+                predicate = new ExtraPredicate.TargetIsUsingItem<>(args.getBoolean("edible"));
+            }
         }
 
         for (String[] formatArgs : loggerNote) {

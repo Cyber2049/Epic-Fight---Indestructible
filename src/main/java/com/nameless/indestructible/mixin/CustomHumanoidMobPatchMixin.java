@@ -37,9 +37,9 @@ public abstract class CustomHumanoidMobPatchMixin <T extends PathfinderMob> exte
     @Final
     private MobPatchReloadListener.CustomHumanoidMobPatchProvider provider;
     @Unique
-    private static final EntityDataAccessor<Float> BLOCK_STAMINA = new EntityDataAccessor<Float>(253, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> BLOCK_STAMINA = new EntityDataAccessor<>(253, EntityDataSerializers.FLOAT);
     @Unique
-    private static final EntityDataAccessor<Float> ATTACK_SPEED = new EntityDataAccessor<Float>(177, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> ATTACK_SPEED = new EntityDataAccessor<>(177, EntityDataSerializers.FLOAT);
     private int BLOCK_TICK = 0;
     public CustomHumanoidMobPatchMixin(Faction faction, MobPatchReloadListener.CustomHumanoidMobPatchProvider provider){
         super(faction);

@@ -6,6 +6,7 @@ import net.minecraft.world.item.PotionItem;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.CustomHumanoidMobPatch;
+import yesman.epicfight.world.capabilities.entitypatch.EntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
@@ -17,9 +18,9 @@ public class ExtraPredicate {
             this.invert = invert;
         }
         public boolean test(T mobpatch) {
-            LivingEntityPatch<?> tartgetpatch = (LivingEntityPatch<?>)mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
-            if(tartgetpatch == null) return false;
-            boolean targetisguardbreak = tartgetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.BIPED_COMMON_NEUTRALIZED || tartgetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.GREATSWORD_GUARD_BREAK;
+            EntityPatch<?> entityPatch = mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
+            if(entityPatch == null || !(entityPatch instanceof LivingEntityPatch<?> targetpatch)) return false;
+            boolean targetisguardbreak = targetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.BIPED_COMMON_NEUTRALIZED || targetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.GREATSWORD_GUARD_BREAK;
             if (!this.invert) {
                 return targetisguardbreak;
             } else {
@@ -34,9 +35,9 @@ public class ExtraPredicate {
             this.invert = invert;
         }
         public boolean test(T mobpatch) {
-            LivingEntityPatch<?> tartgetpatch = (LivingEntityPatch<?>)mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
-            if(tartgetpatch == null) return false;
-            boolean targetisknockdown = tartgetpatch.getEntityState().knockDown();
+            EntityPatch<?> entityPatch = mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
+            if(entityPatch == null || !(entityPatch instanceof LivingEntityPatch<?> targetpatch)) return false;
+            boolean targetisknockdown = targetpatch.getEntityState().knockDown();
             if (!this.invert) {
                 return targetisknockdown;
             } else {
@@ -55,9 +56,9 @@ public class ExtraPredicate {
         }
 
         public boolean test(T mobpatch) {
-            LivingEntityPatch<?> tartgetpatch = (LivingEntityPatch<?>)mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
-            if(tartgetpatch == null) return false;
-            int level = tartgetpatch.getEntityState().getLevel();
+            EntityPatch<?> entityPatch = mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
+            if(entityPatch == null || !(entityPatch instanceof LivingEntityPatch<?> targetpatch)) return false;
+            int level = targetpatch.getEntityState().getLevel();
             return this.minLevel <= level && level <= this.maxLevel;
         }
     }
@@ -75,18 +76,13 @@ public class ExtraPredicate {
             if(!(mobpatch instanceof CustomHumanoidMobPatch<?>)) return false;
             float stamina = ((CustomHumanoidMobPatchUtils) mobpatch).getStamina();
             float maxstamina = ((CustomHumanoidMobPatchUtils) mobpatch).getMaxStamina();
-            switch (this.comparator) {
-                case LESS_ABSOLUTE:
-                    return this.value > stamina;
-                case GREATER_ABSOLUTE:
-                    return this.value < stamina;
-                case LESS_RATIO:
-                    return this.value > stamina / maxstamina;
-                case GREATER_RATIO:
-                    return this.value < stamina / maxstamina;
-            }
+            return switch (this.comparator) {
+                case LESS_ABSOLUTE -> this.value > stamina;
+                case GREATER_ABSOLUTE -> this.value < stamina;
+                case LESS_RATIO -> this.value > stamina / maxstamina;
+                case GREATER_RATIO -> this.value < stamina / maxstamina;
+            };
 
-            return true;
         }
     }
 

@@ -8,6 +8,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.CustomHumanoidMobPatch;
+import yesman.epicfight.world.capabilities.entitypatch.EntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 import java.util.EnumSet;
@@ -28,7 +29,7 @@ public class RangedGuardGoal <T extends CustomHumanoidMobPatch<?>> extends Goal 
     }
 
     public boolean canUse() {
-        return this.checkTargetValid() && this.isBlocking();
+        return this.checkTargetValid() && this.isBlocking() && !this.mobpatch.getOriginal().isUsingItem();
     }
     public boolean canContinueToUse() {
         return this.canUse() && !(this.targetInaction() && this.keepDistance);
@@ -63,8 +64,8 @@ public class RangedGuardGoal <T extends CustomHumanoidMobPatch<?>> extends Goal 
     }
 
     private boolean targetInaction(){
-        LivingEntityPatch<?> target = (LivingEntityPatch<?>) this.mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY,null).orElse(null);
-        if (target == null){
+        EntityPatch<?> target = this.mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY,null).orElse(null);
+        if (target == null || !(target instanceof LivingEntityPatch<?>)){
             return true;
         } else {
             return targetInactiontime > 20;
@@ -78,8 +79,8 @@ public class RangedGuardGoal <T extends CustomHumanoidMobPatch<?>> extends Goal 
         this.mobpatch.playAnimationSynchronized(animation,0F);
         Mob mob = this.mobpatch.getOriginal();
         if (target != null) {
-            LivingEntityPatch<?> targetPatch = (LivingEntityPatch<?>) target.getCapability(EpicFightCapabilities.CAPABILITY_ENTITY,null).orElse(null);
-            if (targetPatch != null){
+            EntityPatch<?> targetEntityPatch = target.getCapability(EpicFightCapabilities.CAPABILITY_ENTITY,null).orElse(null);
+            if (targetEntityPatch != null && targetEntityPatch instanceof LivingEntityPatch<?> targetPatch){
                 if(targetPatch.getEntityState().getLevel() == 0) {
                     ++this.targetInactiontime;
                 } else {
