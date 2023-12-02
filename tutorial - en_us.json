@@ -105,10 +105,12 @@
 						},
 						{
 							"conditions": [
-								{"predicate":"within_eye_height"}
+								{"predicate":"within_eye_height"},
+								{"predicate":"phase", "min": 0, "max": 0} // check custom phase
 							],
 							"animation": "epicfight:wither_skeleton/sword_attack2",
-							"play_speed": 1.1
+							"play_speed": 1.1,
+							"set_phase": 1 //set phase,  0 - 20
 						},
 						{
 							"conditions": [
@@ -118,20 +120,6 @@
 							],
 							"animation": "epicfight:biped/combat/longsword_dash",
 							"convert_time": 0.15
-						}
-                        ]                 
-				},
-				{
-					"weight": 1.5,
-					"canBeInterrupted": true,
-					"looping": false,
-					"behaviors": [
-						{
-							"conditions": [
-								{"predicate":"phase", "min": 0, "max": 0}
-								 // check custom phase
-							],
-							"set_phase": 1 //set phase,  0 - 20
 						}
                         ]                 
 				}
