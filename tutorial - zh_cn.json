@@ -78,7 +78,8 @@
 							"counter": "indestructible:guard/knee", //反击动画，非必须，不写默认为示例动作
 							"counter_cost": 3, //反击耐力消耗，非必须默认为3，耐力低于消耗无法反击
 							"counter_chance": 0.3, //反击概率，非必须默认为0.3，设置0为不反击
-							"counter_speed": 1 //反击速度，非必须默认1
+							"counter_speed": 1, //反击速度，非必须默认1
+							"set_phase": 1 //设置自定义阶段 支持阶段 0 - 20 
 						}
                         ]                 
 				},
@@ -126,7 +127,7 @@
 							"conditions": [
 								{"predicate":"phase", "min": 0, "max": 0} // 检测自定义阶段
 							],
-							"set_phase": 1 //设置自定义阶段 支持阶段 0 - 20
+							"animation": "epicfight:biped/combat/longsword_dash"
 						}
                         ]                 
 				}
