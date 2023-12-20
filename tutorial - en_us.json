@@ -99,8 +99,11 @@
 							"play_speed": 1.1, 										//optional attack speed
 							"stamina": 0, 											//stamina consumption
 							"convert_time": 0, 										//convert time between this animation and the previous one
-							"command_list": [																//optional, command list
-								{"time":0.5, "command":"give @s minecraft:stick", "execute_at_target":true}	 	//command event， set execute_at_target to true means command will execute on mob's ,false means self.
+							"command_list": [																//optional, command list, execute by time
+								{"time":0.5, "command":"give @s minecraft:stick", "execute_at_target":true}	 	//command event， set execute_at_target to true means command will execute on mob's target, false means self.
+							], 										//convert time between this animation and the previous one
+							"hit_command_list": [																//optional, command list, execute when mob hit somebody.
+								{"time":0.5, "command":"give @s minecraft:stick", "execute_at_target":true}	 	//command event， set execute_at_target to true means command will execute on mob's hitting target,false means self.
 							]
 						},
 						{
