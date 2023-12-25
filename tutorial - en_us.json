@@ -119,8 +119,8 @@
 							],
 							"wander": 300,             //mandatory, duration of wandering
 							"inaction_time": 300,	   //optional, duration of inaction， default equal to wander time
-							"x_axis": 1,		   //vector for wander around players, -1 to 1, default: 0. clockwise if greater than 0.
-							"z_axis": -1		   //vector for forward or backward, -1 to 1, default: 0. clockwise if greater than 0.
+							"x_axis": 1,		   //vector for wander around players, -1 to 1, default: 0. move clockwise if greater than 0.
+							"z_axis": -1		   //vector for forward or backward, -1 to 1, default: 0. move forward if greater than 0.
 						}
                         ]                 
 				}
