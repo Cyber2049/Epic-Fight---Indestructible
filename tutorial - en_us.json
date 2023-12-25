@@ -9,7 +9,7 @@
 	"renderer": "skeleton",
 	"isHumanoid": true,
 	"faction": "undead",
-	"advanced": true, 			//set to true for allowing all stuff in this mod(Only for humanoid). otherwise it just a efm custom entity. default: false
+	"advanced": true, 			//set to true for allowing all stuff in this mod(Only for humanoid). otherwise it just an simple efm custom entity. default: false
 	"attributes": {				
 		"impact": 2.5,
 		"armor_negation": 5.0,
