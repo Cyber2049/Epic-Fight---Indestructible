@@ -1,12 +1,11 @@
 package com.nameless.indestructible.utils;
 
+import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
-import yesman.epicfight.world.capabilities.entitypatch.CustomHumanoidMobPatch;
-import yesman.epicfight.world.capabilities.entitypatch.EntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
@@ -18,9 +17,9 @@ public class ExtraPredicate {
             this.invert = invert;
         }
         public boolean test(T mobpatch) {
-            EntityPatch<?> entityPatch = mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
-            if(entityPatch == null || !(entityPatch instanceof LivingEntityPatch<?> targetpatch)) return false;
-            boolean targetisguardbreak = targetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.BIPED_COMMON_NEUTRALIZED || targetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.GREATSWORD_GUARD_BREAK;
+            LivingEntityPatch<?> tartgetpatch = (LivingEntityPatch<?>)mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
+            if(tartgetpatch == null) return false;
+            boolean targetisguardbreak = tartgetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.BIPED_COMMON_NEUTRALIZED || tartgetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.GREATSWORD_GUARD_BREAK;
             if (!this.invert) {
                 return targetisguardbreak;
             } else {
@@ -35,9 +34,9 @@ public class ExtraPredicate {
             this.invert = invert;
         }
         public boolean test(T mobpatch) {
-            EntityPatch<?> entityPatch = mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
-            if(entityPatch == null || !(entityPatch instanceof LivingEntityPatch<?> targetpatch)) return false;
-            boolean targetisknockdown = targetpatch.getEntityState().knockDown();
+            LivingEntityPatch<?> tartgetpatch = (LivingEntityPatch<?>)mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
+            if(tartgetpatch == null) return false;
+            boolean targetisknockdown = tartgetpatch.getEntityState().knockDown();
             if (!this.invert) {
                 return targetisknockdown;
             } else {
@@ -47,18 +46,18 @@ public class ExtraPredicate {
     }
 
     public static class TargetWithinState<T extends MobPatch<?>> extends CombatBehaviors.BehaviorPredicate<T> {
-        private final double minLevel;
-        private final double maxLevel;
+        private final int minLevel;
+        private final int maxLevel;
 
-        public TargetWithinState(double minLevel, double maxLevel) {
+        public TargetWithinState(int minLevel, int maxLevel) {
             this.minLevel = minLevel;
             this.maxLevel = maxLevel;
         }
 
         public boolean test(T mobpatch) {
-            EntityPatch<?> entityPatch = mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
-            if(entityPatch == null || !(entityPatch instanceof LivingEntityPatch<?> targetpatch)) return false;
-            int level = targetpatch.getEntityState().getLevel();
+            LivingEntityPatch<?> tartgetpatch = (LivingEntityPatch<?>)mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
+            if(tartgetpatch == null) return false;
+            int level = tartgetpatch.getEntityState().getLevel();
             return this.minLevel <= level && level <= this.maxLevel;
         }
     }
@@ -73,16 +72,21 @@ public class ExtraPredicate {
         }
 
         public boolean test(T mobpatch) {
-            if(!(mobpatch instanceof CustomHumanoidMobPatch<?>)) return false;
-            float stamina = ((CustomHumanoidMobPatchUtils) mobpatch).getStamina();
-            float maxstamina = ((CustomHumanoidMobPatchUtils) mobpatch).getMaxStamina();
-            return switch (this.comparator) {
-                case LESS_ABSOLUTE -> this.value > stamina;
-                case GREATER_ABSOLUTE -> this.value < stamina;
-                case LESS_RATIO -> this.value > stamina / maxstamina;
-                case GREATER_RATIO -> this.value < stamina / maxstamina;
-            };
+            if(!(mobpatch instanceof AdvancedCustomHumanoidMobPatch)) return false;
+            float stamina = ((AdvancedCustomHumanoidMobPatch<?>) mobpatch).getStamina();
+            float maxstamina = ((AdvancedCustomHumanoidMobPatch<?>) mobpatch).getMaxStamina();
+            switch (this.comparator) {
+                case LESS_ABSOLUTE:
+                    return this.value > stamina;
+                case GREATER_ABSOLUTE:
+                    return this.value < stamina;
+                case LESS_RATIO:
+                    return this.value > stamina / maxstamina;
+                case GREATER_RATIO:
+                    return this.value < stamina / maxstamina;
+            }
 
+            return true;
         }
     }
 
@@ -93,24 +97,33 @@ public class ExtraPredicate {
         }
         public boolean test(T mobpatch) {
             LivingEntity target = mobpatch.getTarget();
-            ItemStack item = target.getUseItem();
-            if(target.isUsingItem() && isEdible){
-                return  item.getItem() instanceof PotionItem || item.getItem().isEdible();
-            } else {
-                return !(item.getItem() instanceof PotionItem || item.getItem().isEdible());
+            if (target.isUsingItem()) {
+                ItemStack item = target.getUseItem();
+                if (isEdible) {
+                    return item.getItem() instanceof PotionItem || item.getItem().isEdible();
+                } else {
+                    return !(item.getItem() instanceof PotionItem || item.getItem().isEdible());
+                }
             }
+            return false;
         }
     }
 
-    public static class IsNotBlocking<T extends MobPatch<?>> extends CombatBehaviors.BehaviorPredicate<T> {
-        public IsNotBlocking(){
+    public static class Phase<T extends MobPatch<?>> extends CombatBehaviors.BehaviorPredicate<T> {
+        private final int minLevel;
+        private final int maxLevel;
+
+        public Phase(int minLevel, int maxLevel) {
+            this.minLevel = minLevel;
+            this.maxLevel = maxLevel;
         }
+
         public boolean test(T mobpatch) {
-            if(mobpatch instanceof CustomHumanoidMobPatch){
-               return !(((CustomHumanoidMobPatchUtils)mobpatch).getBlockTick() > 0);
-            } else {
-                return true;
+            if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
+                int phase = advancedCustomHumanoidMobPatch.getPhase();
+                return this.minLevel <= phase && phase <= this.maxLevel;
             }
+            return false;
         }
     }
 
