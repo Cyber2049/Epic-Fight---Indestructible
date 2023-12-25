@@ -105,7 +105,7 @@
 							"hit_command_list": [									//optional, command list, execute when mob hit somebody.
 								{"time":0.5, "command":"give @s minecraft:stick", "execute_at_target":true}	//command event， set execute_at_target to true means command will execute on hit target, false means self.
 							],
-							"set_phase": 1, 	    								//set custom phase,  0 - 20
+							"set_phase": 1, 	    								//optional, set custom phase,  0 - 20
 		    					"damage_modifier": {	    								//optional, modifiy attack animation damage source.
 								"damage": 1, 	    								//base damage x ratio
 								"impact": 1, 	   								//base impact x ratio
@@ -119,8 +119,8 @@
 							],
 							"wander": 300,             //mandatory, duration of wandering
 							"inaction_time": 300,	   //optional, duration of inaction， default equal to wander time
-							"x_axis": 1,		   //vector for wander around players, -1 to 1, default: 0. move clockwise if greater than 0.
-							"z_axis": -1		   //vector for forward or backward, -1 to 1, default: 0. move forward if greater than 0.
+							"x_axis": 1,		   //optional, vector for wander around players, -1 to 1, default: 0. move clockwise if greater than 0.
+							"z_axis": -1		   //optional, vector for forward or backward, -1 to 1, default: 0. move forward if greater than 0.
 						}
                         ]                 
 				}
