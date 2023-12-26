@@ -103,7 +103,7 @@
 								{"time":0.5, "command":"give @s minecraft:stick", "execute_at_target":true}	//command event， set execute_at_target to true means command will execute on mob's target, false means self.
 							], 											
 							"hit_command_list": [									//optional, command list, execute when mob hit somebody.
-								{"time":0.5, "command":"give @s minecraft:stick", "execute_at_target":true}	//command event， set execute_at_target to true means command will execute on hit target, false means self.
+								{"command":"give @s minecraft:stick", "execute_at_target":true}	//command event， set execute_at_target to true means command will execute on hit target, false means self.
 							],
 							"set_phase": 1, 	    								//optional, set custom phase,  0 - 20
 		    					"damage_modifier": {	    								//optional, modifiy attack animation damage source.
