@@ -73,7 +73,7 @@
 					"weight": 1.5,
 					"canBeInterrupted": true,
 					"looping": false,
-					"behaviors": [						//3 types of actions, animation, guard, wander
+					"behaviors": [						//3 types of behaviors, animation, guard, wander
 						{
 							"conditions": [
 								{"predicate":"within_eye_height"}, {"predicate":"within_distance", "min": 3.0, "max": 5.0}
