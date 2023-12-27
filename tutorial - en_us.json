@@ -54,8 +54,8 @@
                   "weapon_categories": ["longsword","tachi","sword"],//mandatory
                   "style":"common", 				     //mandatory
                   "guard": "indestructible:guard/guard_longsword",   //mandatory, guard animation
-		  "stamina_cost_multiply": 1, 	     //optional, default: 1, stamina consumption rate on guard
-		  "can_block_projectile" : false     //optional
+		  "stamina_cost_multiply": 1, 	     		     //optional, default: 1, stamina consumption rate on guard
+		  "can_block_projectile" : false     	 	     //optional
             }
 	],
 	"stun_animations": {
