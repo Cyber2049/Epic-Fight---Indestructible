@@ -90,6 +90,8 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     private int tickSinceLastAction;
     private int tickSinceBreakShield;
     private CounterMotion counterMotion;
+    private final int guardCancelTime;
+    private final float guardRadius;
     //event
     private DamageSourceModifier damageSourceModifier = null;
     private final List<AnimationEvent.TimeStampedEvent> timeEvents = Lists.newArrayList();
@@ -114,6 +116,8 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         this.weaponLivingMotions = provider.getHumanoidWeaponMotions();
         this.weaponAttackMotions = provider.getHumanoidCombatBehaviors();
         this.guardMotions = provider.getGuardMotions();
+        this.guardCancelTime = provider.getGuardCancelTime();
+        this.guardRadius = provider.getGuardRadius();
     }
 
     @Override
@@ -252,6 +256,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public float getCounterSpeed(){
         return this.counterMotion.speed;
     }
+    public int getGuardCancelTime(){return this.guardCancelTime;}
 
     public void resetActionTick() {
         this.tickSinceLastAction = 0;
@@ -302,7 +307,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
                 if (builder != null) {
                     this.original.goalSelector.addGoal(0, new AdvancedCombatGoal<>(this, builder.build(this)));
-                    this.original.goalSelector.addGoal(0, new GuardGoal<>(this,4F));
+                    this.original.goalSelector.addGoal(0, new GuardGoal<>(this,this.guardRadius));
                     this.original.goalSelector.addGoal(1, new AdvancedChasingGoal<>(this, this.getOriginal(), this.provider.getChasingSpeed(), true,0));
                 }
             }

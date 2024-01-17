@@ -62,7 +62,7 @@ public class GuardGoal<T extends AdvancedCustomHumanoidMobPatch<?>> extends Goal
         if (target == null){
             return true;
         } else {
-            return targetInactiontime > 30;
+            return targetInactiontime > this.mobpatch.getGuardCancelTime();
         }
     }
 
