@@ -1,6 +1,7 @@
 {
   "required": true,
   "package": "com.nameless.indestructible.mixin",
+  "refmap": "indestructible.refmap.json",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "AttackAnimationMixin",

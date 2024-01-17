@@ -114,6 +114,7 @@ repositories {
 
 mixin {
     config "mixins.indestructible.json"
+    add sourceSets.main, "indestructible.refmap.json"
 }
 
 dependencies {
