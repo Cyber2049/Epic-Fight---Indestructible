@@ -5,7 +5,7 @@ import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
 import com.nameless.indestructible.api.animation.types.AnimationEvent;
 import com.nameless.indestructible.api.animation.types.CustomGuardAnimation;
-import com.nameless.indestructible.data.AdvancedCustomHumanoidMobPatchProvider;
+import com.nameless.indestructible.data.AdvancedMobpatchReloader.AdvancedCustomHumanoidMobPatchProvider;
 import com.nameless.indestructible.gameasset.GuardAnimations;
 import com.nameless.indestructible.world.ai.goal.AdvancedChasingGoal;
 import com.nameless.indestructible.world.ai.goal.AdvancedCombatGoal;
@@ -40,7 +40,6 @@ import yesman.epicfight.api.client.animation.ClientAnimator;
 import yesman.epicfight.api.client.animation.Layer;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.api.utils.math.OpenMatrix4f;
-import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.gameasset.EpicFightSounds;
 import yesman.epicfight.main.EpicFightMod;
@@ -96,6 +95,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     private final List<AnimationEvent.TimeStampedEvent> timeEvents = Lists.newArrayList();
     private final List<AnimationEvent.HitEvent> hitEvents = Lists.newArrayList();
     private int phase;
+    //wandering
     private float strafingForward;
     private float strafingClockwise;
     private int strafingTime;
@@ -131,7 +131,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         this.tickSinceBreakShield = 0;
         this.block_tick = 0;
         this.setStamina(this.getMaxStamina());
-        this.clearEvent();
+        this.resetMotion();
         this.setAttackSpeed(1F);
         this.setPhase(0);
         if(this.maxStunShield > 0) {
@@ -209,7 +209,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public void addEvent(AnimationEvent.HitEvent event){
         this.hitEvents.add(event);
     }
-    public void clearEvent(){
+    public void resetMotion(){
         if (this.hasTimeEvent()) this.timeEvents.clear();
         if (this.hasHitEvent()) this.hitEvents.clear();
         if (this.damageSourceModifier != null) this.damageSourceModifier = null;
@@ -302,7 +302,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
                 if (builder != null) {
                     this.original.goalSelector.addGoal(0, new AdvancedCombatGoal<>(this, builder.build(this)));
-                    this.original.goalSelector.addGoal(0, new GuardGoal<>(this,3F));
+                    this.original.goalSelector.addGoal(0, new GuardGoal<>(this,4F));
                     this.original.goalSelector.addGoal(1, new AdvancedChasingGoal<>(this, this.getOriginal(), this.provider.getChasingSpeed(), true,0));
                 }
             }
@@ -414,7 +414,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public StaticAnimation getHitAnimation(StunType stunType) {
         this.setAttackSpeed(1F);
         this.resetActionTick();
-        this.clearEvent();
+        this.resetMotion();
 
         return this.provider.getStunAnimations().get(stunType);
     }
@@ -554,7 +554,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                     float counter_cost = this.getCounterStamina();
                     Random random = this.getOriginal().getRandom();
                     if (random.nextFloat() < this.getCounterChance() && stamina >= counter_cost) {
-                        this.getOriginal().addEffect(new MobEffectInstance(  EpicFightMobEffects.STUN_IMMUNITY.get(), 25));
+                        this.getOriginal().addEffect(new MobEffectInstance(EpicFightMobEffects.STUN_IMMUNITY.get(), 25));
                         this.setAttackSpeed(this.getCounterSpeed());
                         this.playAnimationSynchronized(this.getCounter(),0);
                         this.playSound(EpicFightSounds.CLASH, -0.05F, 0.1F);
@@ -586,7 +586,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                     efDamageSource.setStunType(StunType.NONE);
                     this.setAttackSpeed(1F);
                     this.resetActionTick();
-                    this.clearEvent();
+                    this.resetMotion();
                     this.playAnimationSynchronized(Animations.BIPED_COMMON_NEUTRALIZED, 0);
                     this.setStamina(this.getMaxStamina());
                 }
@@ -597,7 +597,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                 efDamageSource.setStunType(StunType.NONE);
                 this.setAttackSpeed(1F);
                 this.resetActionTick();
-                this.clearEvent();
+                this.resetMotion();
                 }
             }
         return new AttackResult(AttackResult.ResultType.SUCCESS, amount);
@@ -611,10 +611,8 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         damagesource.setHurtItem(this.original.getItemInHand(hand));
 
         if(this.damageSourceModifier != null){
-            damagesource.setDamageModifier(ValueModifier.multiplier(damageSourceModifier.damage));
             damagesource.setImpact(this.getImpact(hand) * damageSourceModifier.impact());
             damagesource.setArmorNegation(Math.min(100, this.getArmorNegation(hand) * damageSourceModifier.armor_negation()));
-            this.damageSourceModifier = null;
         }
         return damagesource;
     }
@@ -622,11 +620,18 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
     @Override
     public void onDeath(LivingDeathEvent event) {
-        this.clearEvent();
+        this.resetMotion();
         this.setBlockTick(0);
         this.setBlocking(false);
         this.getAnimator().playDeathAnimation();
         this.currentLivingMotion = LivingMotions.DEATH;
+    }
+    @Override
+    public float getModifiedBaseDamage(float baseDamage) {
+        if(this.damageSourceModifier != null) {
+            baseDamage *= damageSourceModifier.damage();
+        }
+        return baseDamage;
     }
 
     public record CustomAnimationMotion(StaticAnimation animation, float convertTime, float speed, float stamina) { }

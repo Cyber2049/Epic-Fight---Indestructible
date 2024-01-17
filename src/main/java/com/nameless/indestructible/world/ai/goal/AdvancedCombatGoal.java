@@ -24,7 +24,7 @@ public class AdvancedCombatGoal<T extends HumanoidMobPatch<?>> extends AnimatedA
 					CombatBehaviors.Behavior<T> result = this.combatBehaviors.tryProceed();
 
 					if (result != null) {
-						if(this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch) ACHMobpatch.clearEvent();
+						if(this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch) ACHMobpatch.resetMotion();
 						result.execute(this.mobpatch);
 					}
 				}
@@ -33,7 +33,7 @@ public class AdvancedCombatGoal<T extends HumanoidMobPatch<?>> extends AnimatedA
 					CombatBehaviors.Behavior<T> result = this.combatBehaviors.selectRandomBehaviorSeries();
 
 					if (result != null) {
-						if(this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch) ACHMobpatch.clearEvent();
+						if(this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch) ACHMobpatch.resetMotion();
 						result.execute(this.mobpatch);
 					}
 				}

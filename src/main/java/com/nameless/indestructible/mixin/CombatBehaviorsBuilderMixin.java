@@ -23,7 +23,7 @@ public class CombatBehaviorsBuilderMixin <T extends MobPatch<?>> implements Beha
     public CombatBehaviors.Behavior.Builder<T> customAttackAnimation(AdvancedCustomHumanoidMobPatch.CustomAnimationMotion motion, @Nullable AdvancedCustomHumanoidMobPatch.DamageSourceModifier damageSourceModifier, @Nullable List<AnimationEvent.TimeStampedEvent> timeEvents, @Nullable List<AnimationEvent.HitEvent> hitEvents, int phase) {
         this.behavior = (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
-                advancedCustomHumanoidMobPatch.clearEvent();
+                advancedCustomHumanoidMobPatch.resetMotion();
                 advancedCustomHumanoidMobPatch.setAttackSpeed(motion.speed());
                if(motion.stamina() != 0F) advancedCustomHumanoidMobPatch.setStamina(advancedCustomHumanoidMobPatch.getStamina() - motion.stamina());
                if(timeEvents != null){

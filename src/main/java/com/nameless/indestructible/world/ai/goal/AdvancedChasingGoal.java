@@ -15,11 +15,11 @@ public class AdvancedChasingGoal<T extends AdvancedCustomHumanoidMobPatch<?>> ex
 		this.speed = speedModifier;
 		this.attackRadiusSqr = attackRadius * attackRadius;
 	}
-	
+
 	@Override
 	public void tick() {
 		LivingEntity target = this.mob.getTarget();
-		
+
 		if (target == null) return;
 		if(this.mobpatch.getInactionTime() > 0){
 			mobpatch.setInactionTime(mobpatch.getInactionTime()-1);
@@ -30,19 +30,25 @@ public class AdvancedChasingGoal<T extends AdvancedCustomHumanoidMobPatch<?>> ex
 		if (mobpatch.getStrafingTime() > 0) {
 			mobpatch.setStrafingTime(mobpatch.getStrafingTime() - 1);
 			this.mob.getNavigation().stop();
-			this.mob.lookAt(target, 30.0F, 30.0F);
 			this.mob.getMoveControl().strafe(mobpatch.getStrafingForward(), mobpatch.getStrafingClockwise());
+			this.mob.lookAt(target, 30.0F, 30.0F);
 		} else if (d0 <= this.attackRadiusSqr) {
 			this.mob.getNavigation().stop();
 			if(!this.mobpatch.getEntityState().turningLocked()) {
 				this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
 			}
-		} else if (this.mobpatch.getBlockTick() > 0) {
+		} else if (this.mobpatch.isBlocking()) {
 			this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
 			this.mob.getNavigation().moveTo(target, this.speed * 0.8F);
 		} else {
 			super.tick();
 		}
+	}
+
+
+	public void stop() {
+		super.stop();
+		mobpatch.setStrafingTime(0);
 	}
 	
 	@Override

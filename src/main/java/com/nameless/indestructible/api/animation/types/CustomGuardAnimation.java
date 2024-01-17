@@ -28,5 +28,4 @@ public class CustomGuardAnimation extends StaticAnimation {
 			}
 		}
 	}
-
 }

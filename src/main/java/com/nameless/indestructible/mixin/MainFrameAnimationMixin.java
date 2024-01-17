@@ -13,14 +13,14 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 @Mixin(MainFrameAnimation.class)
 public class MainFrameAnimationMixin {
-    @Inject(method = "begin(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;)V",at = @At("TAIL"))
+    @Inject(method = "begin(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;)V",at = @At("TAIL"), remap = false)
     public void onBegin(LivingEntityPatch<?> entitypatch, CallbackInfo ci){
         if(entitypatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
             advancedCustomHumanoidMobPatch.resetActionTick();
         }
     }
 
-    @Inject(method = "tick(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;)V",at = @At("TAIL"))
+    @Inject(method = "tick(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;)V",at = @At("TAIL"), remap = false)
     public void onTick(LivingEntityPatch<?> entitypatch, CallbackInfo ci){
         if(!entitypatch.isLogicalClient() && entitypatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch && advancedCustomHumanoidMobPatch.hasTimeEvent()){
 

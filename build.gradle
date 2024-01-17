@@ -19,7 +19,7 @@ apply plugin: 'org.spongepowered.mixin'
 
 
 
-version = '18.5.1'
+version = '18.5.2'
 group = 'com.nameless.indestructible' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'indestructible'
 
@@ -113,13 +113,12 @@ repositories {
 }
 
 mixin {
-    add sourceSets.main, "mixins.indestructible.mixins.refmap.json"
     config "mixins.indestructible.json"
 }
 
 dependencies {
 
-    minecraft 'net.minecraftforge:forge:1.18.2-40.2.10'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.2.14'
     implementation fg.deobf("curse.maven:epic-fight-mod-405076:4922082")
 }
 

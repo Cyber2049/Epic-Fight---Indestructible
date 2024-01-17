@@ -4,6 +4,7 @@ import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPat
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ProjectileWeaponItem;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
@@ -51,7 +52,7 @@ public class GuardGoal<T extends AdvancedCustomHumanoidMobPatch<?>> extends Goal
         }
     }
 
-    private boolean keepDistance(){
+    private boolean withinDistance(){
         LivingEntity target = this.mobpatch.getTarget();
         return this.mobpatch.getOriginal().distanceToSqr(target.getX(), target.getY(), target.getZ()) <= (double)this.radiusSqr;
     }
@@ -68,19 +69,20 @@ public class GuardGoal<T extends AdvancedCustomHumanoidMobPatch<?>> extends Goal
     public void tick() {
         LivingEntity target = this.mobpatch.getTarget();
         int blocktick = mobpatch.getBlockTick();
-        if(!mobpatch.isBlocking()) mobpatch.setBlocking(true);
         if (target != null) {
-            this.mobpatch.rotateTo(target, this.mobpatch.getYRotLimit(), false);
             LivingEntityPatch<?> targetPatch = (LivingEntityPatch<?>) target.getCapability(EpicFightCapabilities.CAPABILITY_ENTITY,null).orElse(null);
             if (targetPatch != null){
-                if(targetPatch.getEntityState().getLevel() == 0 && this.keepDistance()) {
-                    ++this.targetInactiontime;
-                    if(blocktick > 0)mobpatch.setBlockTick(blocktick - 1);
-                } else {
+                if(targetPatch.getEntityState().getLevel() > 0 && this.withinDistance()) {
                     this.targetInactiontime = 0;
+                } else if (this.mobpatch.canBlockProjectile() && target.isUsingItem() && target.getUseItem().getItem() instanceof ProjectileWeaponItem) {
+                    this.targetInactiontime = 0;
+                } else {
+                    ++this.targetInactiontime;
                 }
-            } else {
-                mobpatch.setBlockTick(blocktick - 1);
+            }
+
+            if(targetInactiontime > 0 && blocktick > 0){
+                this.mobpatch.setBlockTick(blocktick - 1);
             }
         }
     }
