@@ -9,7 +9,7 @@
 	"renderer": "skeleton",
 	"isHumanoid": true,
 	"faction": "undead",
-	"advanced": true, 			//set to true for allowing all stuff in this mod(Only for humanoid). otherwise it just an efm custom entity. default: false
+	"advanced": true, 			//Only 18.0.7 mandatory. For 18.5.3+ just make sure you put the json file in the right path.
 	"attributes": {				
 		"impact": 2.5,
 		"armor_negation": 5.0,
@@ -79,7 +79,7 @@
 								{"predicate":"within_eye_height"}, {"predicate":"within_distance", "min": 3.0, "max": 5.0}
 							],
 							"guard": 60, 				//mandatory, duration of guarding
-							"counter": "indestructible:guard/knee", //optional, counter animation
+							"counter": "epicfight:wither_skeleton/sword_attack1", //optional, counter animation
 							"counter_cost": 3, 			//stamina consumption on counter
 							"counter_chance": 0.3, 			//optional, counter chance
 							"counter_speed": 1 			//optional, counter speed
