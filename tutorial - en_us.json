@@ -65,7 +65,7 @@
 		"fall": "epicfight:biped/living/landing"
 	},
 	"stun_command_list":[
-		{"command":"/effect give @s epicfight:stun_immunity 6000 5", "stun_type": "short"}		//exexute when mob get stun
+		{"command":"effect give @s epicfight:stun_immunity 6000 5", "stun_type": "short"}		//exexute when mob get stun
 	],
 	"combat_behavior": [
             {
