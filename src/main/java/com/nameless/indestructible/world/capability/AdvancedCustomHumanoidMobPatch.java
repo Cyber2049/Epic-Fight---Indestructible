@@ -219,8 +219,8 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
     private void initStunEvent(AdvancedCustomHumanoidMobPatchProvider provider){
         this.stunEvents.clear();
-        if(!provider.getStunEvent().isEmpty()){
-            this.stunEvents.addAll(provider.getStunEvent());
+        if(provider.getStunEvent() != null && !provider.getStunEvent().isEmpty()){
+            this.stunEvents.addAll(this.provider.getStunEvent());
         }
     }
 
