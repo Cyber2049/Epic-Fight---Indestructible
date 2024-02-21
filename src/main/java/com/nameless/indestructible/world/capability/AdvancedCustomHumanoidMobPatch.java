@@ -119,7 +119,6 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         this.guardMotions = provider.getGuardMotions();
         this.guardCancelTime = provider.getGuardCancelTime();
         this.guardRadius = provider.getGuardRadius();
-        this.stunEvents.addAll(provider.getStunEvent());
         this.initStunEvent(provider);
     }
 
