@@ -1,14 +1,20 @@
 package com.nameless.indestructible.main;
 
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.nameless.indestructible.command.AHPatchCommand;
 import com.nameless.indestructible.data.AdvancedMobpatchReloader;
 import com.nameless.indestructible.gameasset.GuardAnimations;
 import com.nameless.indestructible.network.NetworkManager;
 import com.nameless.indestructible.network.SPDatapackSync;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -28,6 +34,7 @@ public class Indestructible {
         bus.addListener(this::doCommonStuff);
         MinecraftForge.EVENT_BUS.addListener(this::reloadListnerEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onDatapackSync);
+        MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
     }
 
     private void doCommonStuff(final FMLCommonSetupEvent event) {
@@ -46,5 +53,14 @@ public class Indestructible {
             AdvancedMobpatchReloader.getDataStream().forEach(mobPatchPacket::write);
             NetworkManager.sendToClient(mobPatchPacket, target);
         }
+    }
+
+    private void registerCommands(final RegisterCommandsEvent event){
+        event.getDispatcher().register(
+                LiteralArgumentBuilder.<CommandSourceStack>literal(Indestructible.MOD_ID)
+                        .requires(source -> source.hasPermission(2))
+                        .then(Commands.argument("living_entity", EntityArgument.entity())
+                                .then(AHPatchCommand.register()))
+        );
     }
 }

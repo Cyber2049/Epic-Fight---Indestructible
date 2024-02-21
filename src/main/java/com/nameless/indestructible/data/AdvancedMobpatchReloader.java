@@ -136,6 +136,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                 provider.staminaLoseMultiply = tag.getCompound("attributes").contains("stamina_lose_multiply") ? (float)tag.getCompound("attributes").getDouble("stamina_lose_multiply") : 0F;
                 provider.guardRadius = tag.getCompound("attributes").contains("guard_radius") ? (float)tag.getCompound("attributes").getDouble("guard_radius") : 3F;
                 provider.guardCancelTime = tag.getCompound("attributes").contains("guard_cancel_time") ? tag.getCompound("attributes").getInt("guard_cancel_time") : 30;
+                provider.stunEvent = tag.contains("stun_command_list") ? deserializeStunCommandList(tag.getList("stun_command_list", 10)) : null;
             }
             return provider;
     }
@@ -208,6 +209,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         protected double chasingSpeed;
         protected float scale;
         protected float maxStamina;
+        protected List<AnimationEvent.ConditionalEvent> stunEvent;
         public AdvancedCustomHumanoidMobPatchProvider() {
         }
 
@@ -257,6 +259,9 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         public float getStaminaLoseMultiply(){return this.staminaLoseMultiply;}
         public float getGuardRadius(){return this.guardRadius;}
         public int getGuardCancelTime(){return this.guardCancelTime;}
+        public List<AnimationEvent.ConditionalEvent> getStunEvent(){
+            return this.stunEvent;
+        };
     }
     public static Map<Attribute, Double> deserializeAdvancedAttributes(CompoundTag tag) {
         Map<Attribute, Double> attributes = Maps.newHashMap();
@@ -391,11 +396,23 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         }
         return list;
     }
+
     private static List<AnimationEvent.HitEvent> deserializeHitCommandList(ListTag args){
         List<AnimationEvent.HitEvent> list = Lists.newArrayList();
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
             AnimationEvent.HitEvent event = AnimationEvent.HitEvent.CreateHitCommandEvent(command.getString("command"), command.getBoolean("execute_at_target"));
+            list.add(event);
+        }
+        return list;
+    }
+
+    private static List<AnimationEvent.ConditionalEvent> deserializeStunCommandList(ListTag args){
+        List<AnimationEvent.ConditionalEvent> list = Lists.newArrayList();
+        for(int k = 0; k < args.size(); k++){
+            CompoundTag command = args.getCompound(k);
+
+            AnimationEvent.ConditionalEvent event = AnimationEvent.ConditionalEvent.CreateStunCommandEvent(command.getString("command"), StunType.valueOf(command.getString("stun_type").toUpperCase(Locale.ROOT)));
             list.add(event);
         }
         return list;

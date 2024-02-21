@@ -5,12 +5,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class AnimationEvent {
-	final Consumer<LivingEntityPatch<?>> event;
+	private final Consumer<LivingEntityPatch<?>> event;
 	private AnimationEvent(Consumer<LivingEntityPatch<?>> event) {
 		this.event = event;
 	}
@@ -26,7 +27,7 @@ public class AnimationEvent {
 	}
 
 	public static class TimeStampedEvent extends AnimationEvent implements Comparable<TimeStampedEvent> {
-		final float time;
+		private final float time;
 
 		private TimeStampedEvent(float time, Consumer<LivingEntityPatch<?>> event) {
 			super(event);
@@ -34,11 +35,9 @@ public class AnimationEvent {
 		}
 
 		public void testAndExecute(LivingEntityPatch<?> entitypatch, float prevElapsed, float elapsed) {
-			if(!entitypatch.isLogicalClient()) {
 				if (this.time >= prevElapsed && this.time < elapsed) {
 					super.testAndExecute(entitypatch);
 				}
-			}
 		}
 
 		@Override
@@ -68,9 +67,40 @@ public class AnimationEvent {
 		}
 	}
 
+
+	public static class ConditionalEvent extends AnimationEvent{
+		private final int condition;
+
+		private ConditionalEvent(Consumer<LivingEntityPatch<?>> event, int condition){
+			super(event);
+			this.condition = condition;
+		}
+
+		public static ConditionalEvent create(Consumer<LivingEntityPatch<?>> event, int condition) {
+			return new ConditionalEvent(event, condition);
+		}
+
+		public static ConditionalEvent CreateStunCommandEvent(String command, StunType stunType) {
+			Consumer<LivingEntityPatch<?>> event = (entitypatch) -> {
+				Level server = entitypatch.getOriginal().level;
+				CommandSourceStack css = entitypatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
+				if(server.getServer() != null && entitypatch.getOriginal() != null){
+					server.getServer().getCommands().performCommand(css,command);
+				}
+			};
+			return create(event, stunType.ordinal());
+		}
+
+		public void testAndExecute(LivingEntityPatch<?> entitypatch, int condition) {
+			if(this.condition == condition) {
+				super.testAndExecute(entitypatch);
+			}
+		}
+	}
+
 	public static class HitEvent {
-		BiConsumer<LivingEntityPatch<?>, Entity> event;
-		private HitEvent (BiConsumer<LivingEntityPatch<?>, Entity> event){
+		private final BiConsumer<LivingEntityPatch<?>, Entity> event;
+		private HitEvent(BiConsumer<LivingEntityPatch<?>, Entity> event){
 			this.event = event;
 		}
 

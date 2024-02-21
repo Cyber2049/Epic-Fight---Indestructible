@@ -96,6 +96,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     private DamageSourceModifier damageSourceModifier = null;
     private final List<AnimationEvent.TimeStampedEvent> timeEvents = Lists.newArrayList();
     private final List<AnimationEvent.HitEvent> hitEvents = Lists.newArrayList();
+    private final List<AnimationEvent.ConditionalEvent> stunEvents = Lists.newArrayList();
     private int phase;
     //wandering
     private float strafingForward;
@@ -118,6 +119,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         this.guardMotions = provider.getGuardMotions();
         this.guardCancelTime = provider.getGuardCancelTime();
         this.guardRadius = provider.getGuardRadius();
+        this.stunEvents.addAll(provider.getStunEvent());
     }
 
     @Override
@@ -514,12 +516,12 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public AttackResult tryHurt(DamageSource damageSource, float amount) {
         AttackResult result = AttackResult.of(this.getEntityState().attackResult(damageSource), amount);
         if(result.resultType.dealtDamage()){
-           result = this.tryGuard(damageSource, amount);
+           result = this.tryProcess(damageSource, amount);
         }
         return result;
     }
 
-    private AttackResult tryGuard(DamageSource damageSource, float amount){
+    private AttackResult tryProcess(DamageSource damageSource, float amount){
         if (this.getBlockTick() > 0) {
             CustomGuardAnimation animation = this.getGuardAnimation();
             StaticAnimation success = animation.successAnimation != null ? EpicFightMod.getInstance().animationManager.findAnimationByPath(animation.successAnimation) : Animations.SWORD_GUARD_HIT;
@@ -592,7 +594,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                     this.setAttackSpeed(1F);
                     this.resetActionTick();
                     this.resetMotion();
-                    this.playAnimationSynchronized(Animations.BIPED_COMMON_NEUTRALIZED, 0);
+                    this.applyStun(StunType.NEUTRALIZE, 2.0F);
                     this.setStamina(this.getMaxStamina());
                 }
             }
@@ -637,6 +639,20 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
             baseDamage *= damageSourceModifier.damage();
         }
         return baseDamage;
+    }
+
+    @Override
+    public boolean applyStun(StunType stunType, float time){
+            if(!this.stunEvents.isEmpty()){
+                if(this.getHitAnimation(stunType) != null){
+                for(AnimationEvent.ConditionalEvent event: this.stunEvents) {
+                    {
+                        event.testAndExecute(this, stunType.ordinal());
+                    }
+                }
+            }
+        }
+        return super.applyStun(stunType, time);
     }
 
     public record CustomAnimationMotion(StaticAnimation animation, float convertTime, float speed, float stamina) { }
