@@ -17,7 +17,8 @@ public class ExtraPredicate {
             this.invert = invert;
         }
         public boolean test(T mobpatch) {
-            LivingEntityPatch<?> tartgetpatch = (LivingEntityPatch<?>)mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
+
+            LivingEntityPatch<?> tartgetpatch = EpicFightCapabilities.getEntityPatch(mobpatch.getTarget(), LivingEntityPatch.class);
             if(tartgetpatch == null) return false;
             boolean targetisguardbreak = tartgetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.BIPED_COMMON_NEUTRALIZED || tartgetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.GREATSWORD_GUARD_BREAK;
             if (!this.invert) {
@@ -34,7 +35,7 @@ public class ExtraPredicate {
             this.invert = invert;
         }
         public boolean test(T mobpatch) {
-            LivingEntityPatch<?> tartgetpatch = (LivingEntityPatch<?>)mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
+            LivingEntityPatch<?> tartgetpatch = EpicFightCapabilities.getEntityPatch(mobpatch.getTarget(), LivingEntityPatch.class);
             if(tartgetpatch == null) return false;
             boolean targetisknockdown = tartgetpatch.getEntityState().knockDown();
             if (!this.invert) {
@@ -55,7 +56,7 @@ public class ExtraPredicate {
         }
 
         public boolean test(T mobpatch) {
-            LivingEntityPatch<?> tartgetpatch = (LivingEntityPatch<?>)mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY).orElse(null);
+            LivingEntityPatch<?> tartgetpatch = EpicFightCapabilities.getEntityPatch(mobpatch.getTarget(), LivingEntityPatch.class);
             if(tartgetpatch == null) return false;
             int level = tartgetpatch.getEntityState().getLevel();
             return this.minLevel <= level && level <= this.maxLevel;
