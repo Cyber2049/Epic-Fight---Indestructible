@@ -1,4 +1,4 @@
-//教程文件，不能直接用于数据包
+//先看英文的的教程，中文还未及时更新
 {
 	"model": "epicfight:entity/skeleton",
 	"armature": "epicfight:entity/skeleton",
