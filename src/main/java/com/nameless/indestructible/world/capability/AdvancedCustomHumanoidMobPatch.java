@@ -120,6 +120,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         this.guardCancelTime = provider.getGuardCancelTime();
         this.guardRadius = provider.getGuardRadius();
         this.stunEvents.addAll(provider.getStunEvent());
+        this.initStunEvent(provider);
     }
 
     @Override
@@ -215,6 +216,14 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public void addEvent(AnimationEvent.HitEvent event){
         this.hitEvents.add(event);
     }
+
+    private void initStunEvent(AdvancedCustomHumanoidMobPatchProvider provider){
+        this.stunEvents.clear();
+        if(!provider.getStunEvent().isEmpty()){
+            this.stunEvents.addAll(provider.getStunEvent());
+        }
+    }
+
     public void resetMotion(){
         if (this.hasTimeEvent()) this.timeEvents.clear();
         if (this.hasHitEvent()) this.hitEvents.clear();
