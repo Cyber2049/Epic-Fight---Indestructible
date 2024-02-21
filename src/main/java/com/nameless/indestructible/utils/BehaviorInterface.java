@@ -13,8 +13,7 @@ public interface BehaviorInterface<T extends MobPatch<?>>{
     @SuppressWarnings("all")
     CombatBehaviors.Behavior.Builder<T> customAttackAnimation(AdvancedCustomHumanoidMobPatch.CustomAnimationMotion motion, @Nullable AdvancedCustomHumanoidMobPatch.DamageSourceModifier damageSourceModifier, @Nullable List<AnimationEvent.TimeStampedEvent> events, @Nullable List<AnimationEvent.HitEvent> hitEvents, int phase);
     @SuppressWarnings("all")
-    CombatBehaviors.Behavior.Builder<T> setGuardMotion(int guardTime, StaticAnimation counter, float cost, float chance, float speed);
-
+    CombatBehaviors.Behavior.Builder<T> setGuardMotion(int guardTime, StaticAnimation counter, float cost, float chance, float speed, int phase);
     @SuppressWarnings("all")
-    CombatBehaviors.Behavior.Builder<T> setStrafing(int strafingTime, int inactionTime, float foward, float clockwise);
+    CombatBehaviors.Behavior.Builder<T> setStrafing(int strafingTime, int inactionTime, float foward, float clockwise, int phase);
 }

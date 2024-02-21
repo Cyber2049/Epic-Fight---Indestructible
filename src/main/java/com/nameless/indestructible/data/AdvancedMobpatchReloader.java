@@ -14,6 +14,7 @@ import com.nameless.indestructible.network.SPDatapackSync;
 import com.nameless.indestructible.utils.BehaviorInterface;
 import com.nameless.indestructible.utils.ExtraPredicate;
 import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
+import io.netty.util.internal.StringUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
@@ -136,7 +137,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                 provider.staminaLoseMultiply = tag.getCompound("attributes").contains("stamina_lose_multiply") ? (float)tag.getCompound("attributes").getDouble("stamina_lose_multiply") : 0F;
                 provider.guardRadius = tag.getCompound("attributes").contains("guard_radius") ? (float)tag.getCompound("attributes").getDouble("guard_radius") : 3F;
                 provider.guardCancelTime = tag.getCompound("attributes").contains("guard_cancel_time") ? tag.getCompound("attributes").getInt("guard_cancel_time") : 30;
-                provider.stunEvent = tag.contains("stun_command_list") ? deserializeStunCommandList(tag.getList("stun_command_list", 10)) : null;
+                provider.stunEvent = deserializeStunCommandList(tag.getList("stun_command_list", 10));
             }
             return provider;
     }
@@ -363,13 +364,15 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                     float cost = behavior.contains("counter_cost") ? (float) behavior.getDouble("counter_cost") : 3.0F;
                     float chance = behavior.contains("counter_chance") ? (float)behavior.getDouble("counter_chance") : 0.3F;
                     float speed = behavior.contains("counter_speed") ? (float)behavior.getDouble("counter_speed") : 1F;
-                    ((BehaviorInterface<?>) behaviorBuilder).setGuardMotion(guardTime,counter,cost,chance,speed);
+                    int phase = behavior.contains("set_phase") ? behavior.getInt("set_phase") : -1;
+                    ((BehaviorInterface<?>) behaviorBuilder).setGuardMotion(guardTime, counter, cost, chance, speed, phase);
                 } else if (behavior.contains("wander")){
                     int strafingTime = behavior.getInt("wander");
                     int inactionTime = behavior.contains("inaction_time") ?  behavior.getInt("inaction_time") : behavior.getInt("wander");
                     float forward = behavior.contains("z_axis") ? (float) behavior.getDouble("z_axis") : 0F;
                     float clockwise = behavior.contains("x_axis") ? (float) behavior.getDouble("x_axis") : 0F;
-                    ((BehaviorInterface<?>) behaviorBuilder).setStrafing(strafingTime, inactionTime, forward, clockwise);
+                    int phase = behavior.contains("set_phase") ? behavior.getInt("set_phase") : -1;
+                    ((BehaviorInterface<?>) behaviorBuilder).setStrafing(strafingTime, inactionTime, forward, clockwise, phase);
                 }
 
                 for (int k = 0; k < conditionList.size(); k++) {

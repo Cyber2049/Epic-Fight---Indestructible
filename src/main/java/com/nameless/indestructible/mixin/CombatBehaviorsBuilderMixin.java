@@ -45,7 +45,7 @@ public class CombatBehaviorsBuilderMixin <T extends MobPatch<?>> implements Beha
     }
 
     @Unique @SuppressWarnings("unchecked")
-    public CombatBehaviors.Behavior.Builder<T> setGuardMotion(int guardTime, StaticAnimation counter, float cost, float chance, float speed) {
+    public CombatBehaviors.Behavior.Builder<T> setGuardMotion(int guardTime, StaticAnimation counter, float cost, float chance, float speed, int phase) {
         this.behavior = (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
                 advancedCustomHumanoidMobPatch.setBlockTick(guardTime);
@@ -56,7 +56,7 @@ public class CombatBehaviorsBuilderMixin <T extends MobPatch<?>> implements Beha
     }
 
     @Unique @SuppressWarnings("unchecked")
-    public CombatBehaviors.Behavior.Builder<T> setStrafing(int strafingTime, int inactionTime, float forward, float clockwise){
+    public CombatBehaviors.Behavior.Builder<T> setStrafing(int strafingTime, int inactionTime, float forward, float clockwise, int phase){
         this.behavior = (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
                 advancedCustomHumanoidMobPatch.setStrafingTime(strafingTime);
