@@ -14,7 +14,6 @@ import com.nameless.indestructible.network.SPDatapackSync;
 import com.nameless.indestructible.utils.BehaviorInterface;
 import com.nameless.indestructible.utils.ExtraPredicate;
 import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
-import io.netty.util.internal.StringUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
