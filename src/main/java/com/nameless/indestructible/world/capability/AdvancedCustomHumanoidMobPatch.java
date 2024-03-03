@@ -590,6 +590,13 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                     this.playSound(EpicFightSounds.NEUTRALIZE_MOBS, 3.0F, 0.0F, 0.1F);
                     this.playAnimationSynchronized(fail, 0.1F);
                     this.setStamina(this.getMaxStamina());
+                    if(!this.stunEvents.isEmpty()){
+                            for(AnimationEvent.ConditionalEvent event: this.stunEvents) {
+                                {
+                                    event.testAndExecute(this, StunType.NEUTRALIZE.ordinal());
+                                }
+                            }
+                    }
                     return new AttackResult(AttackResult.ResultType.SUCCESS, amount/2);
                 }
             }
@@ -657,9 +664,9 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                     {
                         event.testAndExecute(this, stunType.ordinal());
                     }
+                 }
                 }
             }
-        }
         return super.applyStun(stunType, time);
     }
 
