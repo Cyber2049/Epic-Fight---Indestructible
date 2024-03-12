@@ -9,6 +9,7 @@ import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPat
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
@@ -23,7 +24,7 @@ public class AHPatchCommand implements Command<CommandSourceStack> {
 
     @Override
     public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        LivingEntity living = EntityArgument.getPlayer(context, "living");
+        Entity living = EntityArgument.getEntity(context, "living_entity");
         int phase = IntegerArgumentType.getInteger(context, "custom_phase");
         AdvancedCustomHumanoidMobPatch<?> AHPatch = EpicFightCapabilities.getEntityPatch(living, AdvancedCustomHumanoidMobPatch.class);
         if(AHPatch != null){

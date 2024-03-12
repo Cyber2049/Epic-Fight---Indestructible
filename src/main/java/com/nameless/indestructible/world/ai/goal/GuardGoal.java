@@ -58,7 +58,7 @@ public class GuardGoal<T extends AdvancedCustomHumanoidMobPatch<?>> extends Goal
     }
 
     private boolean targetInaction(){
-        LivingEntityPatch<?> target = (LivingEntityPatch<?>) this.mobpatch.getTarget().getCapability(EpicFightCapabilities.CAPABILITY_ENTITY,null).orElse(null);
+        LivingEntityPatch<?> target = EpicFightCapabilities.getEntityPatch(mobpatch.getTarget(),LivingEntityPatch.class);
         if (target == null){
             return true;
         } else {
@@ -70,7 +70,7 @@ public class GuardGoal<T extends AdvancedCustomHumanoidMobPatch<?>> extends Goal
         LivingEntity target = this.mobpatch.getTarget();
         int blocktick = mobpatch.getBlockTick();
         if (target != null) {
-            LivingEntityPatch<?> targetPatch = (LivingEntityPatch<?>) target.getCapability(EpicFightCapabilities.CAPABILITY_ENTITY,null).orElse(null);
+            LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
             if (targetPatch != null){
                 if(targetPatch.getEntityState().getLevel() > 0 && this.withinDistance()) {
                     this.targetInactiontime = 0;
