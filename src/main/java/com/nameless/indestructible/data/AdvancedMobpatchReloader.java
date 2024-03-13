@@ -176,7 +176,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         for (CompoundTag tag : packet.getTags()) {
 
             EntityType<?> entityType = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(tag.getString("id")));
-            ADVANCED_MOB_PATCH_PROVIDERS.put(entityType, deserialize(entityType, tag, true));
+            ADVANCED_MOB_PATCH_PROVIDERS.put(entityType, deserializeMobPatchProvider(entityType, tag, true));
             EntityPatchProvider.putCustomEntityPatch(entityType, (entity) -> () -> ADVANCED_MOB_PATCH_PROVIDERS.get(entity.getType()).get(entity));
             Minecraft mc = Minecraft.getInstance();
             ResourceLocation armatureLocation = new ResourceLocation(tag.getString("armature"));
