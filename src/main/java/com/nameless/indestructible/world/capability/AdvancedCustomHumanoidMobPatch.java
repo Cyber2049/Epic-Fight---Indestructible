@@ -103,6 +103,8 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     private float strafingClockwise;
     private int strafingTime;
     private int inactionTime;
+    private int convertTick = 0;
+    private boolean isRunning = false;
     public AdvancedCustomHumanoidMobPatch(Faction faction, AdvancedCustomHumanoidMobPatchProvider provider) {
         super(faction);
         this.provider = provider;
@@ -119,7 +121,6 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         this.guardMotions = provider.getGuardMotions();
         this.guardCancelTime = provider.getGuardCancelTime();
         this.guardRadius = provider.getGuardRadius();
-        this.initStunEvent(provider);
     }
 
     @Override
@@ -137,12 +138,15 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         this.tickSinceBreakShield = 0;
         this.block_tick = 0;
         this.setStamina(this.getMaxStamina());
-        this.resetMotion();
         this.setAttackSpeed(1F);
         this.setPhase(0);
         if(this.maxStunShield > 0) {
             this.setMaxStunShield(this.maxStunShield);
             this.setStunShield(this.maxStunShield);
+        }
+        if(!this.isLogicalClient()){
+            this.initStunEvent(provider);
+            this.resetMotion();
         }
     }
 
@@ -192,6 +196,20 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
             if(stunShield > maxStunShield){
                 this.setStunShield(this.getMaxStunShield());
             }
+        }
+    }
+
+    @Override
+    protected void clientTick(LivingEvent.LivingUpdateEvent event) {
+        boolean shouldRunning = this.original.animationSpeed >= 0.65F;
+        if(shouldRunning != isRunning){
+            this.convertTick++;
+            if(convertTick > 4){
+                isRunning = shouldRunning;
+            }
+
+        } else {
+            this.convertTick = 0;
         }
     }
 
@@ -367,7 +385,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         } else if (this.original.getDeltaMovement().y < -0.550000011920929) {
             this.currentLivingMotion = LivingMotions.FALL;
         } else if (this.original.animationSpeed > 0.01F) {
-            if (this.original.getSpeed() > 1.5F) {
+            if (this.isRunning) {
                 this.currentLivingMotion = LivingMotions.CHASE;
             } else {
                 this.currentLivingMotion = LivingMotions.WALK;
