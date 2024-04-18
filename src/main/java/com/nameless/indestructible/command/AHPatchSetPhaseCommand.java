@@ -12,8 +12,8 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.world.entity.Entity;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
-public class AHPatchCommand implements Command<CommandSourceStack> {
-    private static final AHPatchCommand COMMAND = new AHPatchCommand();
+public class AHPatchSetPhaseCommand implements Command<CommandSourceStack> {
+    private static final AHPatchSetPhaseCommand COMMAND = new AHPatchSetPhaseCommand();
 
     public static ArgumentBuilder<CommandSourceStack, ?> register() {
         return Commands.literal("set_phase")

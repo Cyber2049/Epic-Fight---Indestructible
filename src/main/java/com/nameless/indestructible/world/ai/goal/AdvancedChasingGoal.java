@@ -18,27 +18,26 @@ public class AdvancedChasingGoal<T extends AdvancedCustomHumanoidMobPatch<?>> ex
 
 	@Override
 	public void tick() {
-		LivingEntity target = this.mob.getTarget();
-
-		if (target == null || this.mobpatch.getEntityState().movementLocked()) return;
 		if(this.mobpatch.getInactionTime() > 0){
 			mobpatch.setInactionTime(mobpatch.getInactionTime()-1);
 		}
 
-		double d0 = this.mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
+		LivingEntity target = this.mob.getTarget();
+		if(target == null) return;
+		if(!this.mobpatch.getEntityState().turningLocked()) {
+			this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
+		}
+
+		if (this.mobpatch.getEntityState().movementLocked()) return;
+		boolean withDistance = this.attackRadiusSqr > this.mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
 
 		if (mobpatch.getStrafingTime() > 0) {
 			mobpatch.setStrafingTime(mobpatch.getStrafingTime() - 1);
 			this.mob.getNavigation().stop();
-			this.mob.getMoveControl().strafe(mobpatch.getStrafingForward(), mobpatch.getStrafingClockwise());
-			this.mob.lookAt(target, 30.0F, 30.0F);
-		} else if (d0 <= this.attackRadiusSqr) {
+			this.mob.getMoveControl().strafe(withDistance ? mobpatch.getStrafingForward() : 0, mobpatch.getStrafingClockwise());
+		} else if (withDistance) {
 			this.mob.getNavigation().stop();
-			if(!this.mobpatch.getEntityState().turningLocked()) {
-				this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
-			}
 		} else if (this.mobpatch.isBlocking()) {
-			this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
 			this.mob.getNavigation().moveTo(target, this.speed * 0.8F);
 		} else {
 			super.tick();

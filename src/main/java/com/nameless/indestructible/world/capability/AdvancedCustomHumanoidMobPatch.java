@@ -201,7 +201,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
     @Override
     protected void clientTick(LivingEvent.LivingUpdateEvent event) {
-        boolean shouldRunning = this.original.animationSpeed >= 0.65F;
+        boolean shouldRunning = this.original.animationSpeed >= 0.7F;
         if(shouldRunning != isRunning){
             this.convertTick++;
             if(convertTick > 4){

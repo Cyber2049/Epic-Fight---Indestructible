@@ -2,7 +2,9 @@ package com.nameless.indestructible.main;
 
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.nameless.indestructible.command.AHPatchCommand;
+import com.nameless.indestructible.command.AHPatchPlayAnimationCommand;
+import com.nameless.indestructible.command.AHPatchSetLookAtCommand;
+import com.nameless.indestructible.command.AHPatchSetPhaseCommand;
 import com.nameless.indestructible.data.AdvancedMobpatchReloader;
 import com.nameless.indestructible.gameasset.GuardAnimations;
 import com.nameless.indestructible.network.NetworkManager;
@@ -60,7 +62,9 @@ public class Indestructible {
                 LiteralArgumentBuilder.<CommandSourceStack>literal(Indestructible.MOD_ID)
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.argument("living_entity", EntityArgument.entity())
-                                .then(AHPatchCommand.register()))
+                                .then(AHPatchSetPhaseCommand.register())
+                                .then(AHPatchSetLookAtCommand.register())
+                                .then(AHPatchPlayAnimationCommand.register()))
         );
     }
 }
