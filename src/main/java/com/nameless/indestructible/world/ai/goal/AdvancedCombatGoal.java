@@ -16,11 +16,11 @@ public class AdvancedCombatGoal<T extends HumanoidMobPatch<?>> extends AnimatedA
 	public void tick() {
 
 		boolean inaction = this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch && (ACHMobpatch.getBlockTick() > 0 || ACHMobpatch.getInactionTime() >0);
-		if (this.mobpatch.getTarget() != null && !inaction) {
+		if (this.mobpatch.getTarget() != null) {
 			EntityState state = this.mobpatch.getEntityState();
 			this.combatBehaviors.tick();
 			if (this.combatBehaviors.hasActivatedMove()) {
-				if (state.canBasicAttack()) {
+				if (state.canBasicAttack() && !inaction) {
 					CombatBehaviors.Behavior<T> result = this.combatBehaviors.tryProceed();
 
 					if (result != null) {
@@ -29,7 +29,7 @@ public class AdvancedCombatGoal<T extends HumanoidMobPatch<?>> extends AnimatedA
 					}
 				}
 			} else {
-				if (!state.inaction()) {
+				if (!state.inaction() && !inaction) {
 					CombatBehaviors.Behavior<T> result = this.combatBehaviors.selectRandomBehaviorSeries();
 
 					if (result != null) {
