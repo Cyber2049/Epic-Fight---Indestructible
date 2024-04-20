@@ -34,7 +34,7 @@ public class AHPatchPlayAnimationCommand implements Command<CommandSourceStack> 
         float convert_time = FloatArgumentType.getFloat(context, "convert_time");
         float speed = FloatArgumentType.getFloat(context, "speed");
         LivingEntityPatch<?> mobPatch = EpicFightCapabilities.getEntityPatch(living, LivingEntityPatch.class);
-        if(mobPatch != null){
+        if(mobPatch != null && animation != null){
             if(mobPatch instanceof AdvancedCustomHumanoidMobPatch<?> AHPatch){
                 AHPatch.setAttackSpeed(speed);
             }

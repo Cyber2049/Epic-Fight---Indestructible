@@ -46,9 +46,7 @@ public class SPDatapackSync {
 	}
 	
 	public static void handle(SPDatapackSync msg, Supplier<NetworkEvent.Context> ctx) {
-		ctx.get().enqueueWork(() -> {
-			AdvancedMobpatchReloader.processServerPacket(msg);
-		});
+		ctx.get().enqueueWork(() -> AdvancedMobpatchReloader.processServerPacket(msg));
 		
 		ctx.get().setPacketHandled(true);
 	}
