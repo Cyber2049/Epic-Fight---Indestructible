@@ -8,6 +8,8 @@
     "MainFrameAnimationMixin"
   ],
   "client": [
+    "HealthBarIndicatorMixin",
+    "TargetIndicatorMixin"
   ],
   "server": [
   ],
