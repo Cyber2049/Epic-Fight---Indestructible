@@ -548,6 +548,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     }
 
     private AttackResult tryProcess(DamageSource damageSource, float amount){
+        //TRY BLOCK
         if (this.getBlockTick() > 0) {
             CustomGuardAnimation animation = this.getGuardAnimation();
             StaticAnimation success = animation.successAnimation != null ? EpicFightMod.getInstance().animationManager.findAnimationByPath(animation.successAnimation) : Animations.SWORD_GUARD_HIT;
@@ -619,27 +620,18 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                 }
             }
         }
+
+        //TRY HURT
         if(damageSource instanceof EpicFightDamageSource efDamageSource) {
             if (this.staminaLoseMultiply > 0 && this.getStunShield() <= 0) {
                 this.setStamina(this.getStamina() - efDamageSource.getImpact() * this.staminaLoseMultiply);
                 if (this.getStamina() < efDamageSource.getImpact()) {
                     efDamageSource.setStunType(StunType.NONE);
-                    this.setAttackSpeed(1F);
-                    this.resetActionTick();
-                    this.resetMotion();
                     this.applyStun(StunType.NEUTRALIZE, 2.0F);
                     this.setStamina(this.getMaxStamina());
                 }
             }
-
-            DynamicAnimation animation = this.getAnimator().getPlayerFor(null).getAnimation();
-            if(animation == Animations.BIPED_COMMON_NEUTRALIZED || animation == Animations.GREATSWORD_GUARD_BREAK) {
-                efDamageSource.setStunType(StunType.NONE);
-                this.setAttackSpeed(1F);
-                this.resetActionTick();
-                this.resetMotion();
-                }
-            }
+        }
         return new AttackResult(AttackResult.ResultType.SUCCESS, amount);
     }
 
@@ -676,15 +668,17 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
     @Override
     public boolean applyStun(StunType stunType, float time){
-            if(!this.stunEvents.isEmpty()){
-                if(this.getHitAnimation(stunType) != null){
+        DynamicAnimation animation = this.getAnimator().getPlayerFor(null).getAnimation();
+        if(animation == Animations.BIPED_COMMON_NEUTRALIZED || animation == Animations.GREATSWORD_GUARD_BREAK) {
+            stunType = StunType.NONE;
+        }
+        if(!this.stunEvents.isEmpty()){
+            if(this.getHitAnimation(stunType) != null){
                 for(AnimationEvent.ConditionalEvent event: this.stunEvents) {
-                    {
-                        event.testAndExecute(this, stunType.ordinal());
-                    }
+                    event.testAndExecute(this, stunType.ordinal());
                  }
-                }
             }
+        }
         return super.applyStun(stunType, time);
     }
 
