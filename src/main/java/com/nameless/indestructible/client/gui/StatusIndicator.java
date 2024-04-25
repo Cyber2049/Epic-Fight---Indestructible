@@ -98,9 +98,9 @@ public class StatusIndicator extends EntityIndicator {
 
         float ratio = Mth.clamp(entityIn.getHealth() / entityIn.getMaxHealth(), 0.0F, 1.0F);
         float healthRatio = -0.5F + ratio;
-        int textureRatio = (int) (64 * ratio);
-        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, -0.5F, -0.05F, healthRatio, 0.05F, 0, 26, textureRatio, 34);
-        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, healthRatio, -0.05F, 0.5F, 0.05F, textureRatio, 16, 64, 24);
+        int textureRatio = (int) (65 * ratio);
+        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, -0.5F, -0.05F, healthRatio, 0.05F, 0, 26, textureRatio, 35);
+        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, healthRatio, -0.05F, 0.5F, 0.05F, textureRatio, 16, 65, 25);
 
         if(entitypatch instanceof AdvancedCustomHumanoidMobPatch<?> achpatch){
             this.renderStamina(achpatch, mvMatrix, vertexBuilder);
@@ -111,9 +111,9 @@ public class StatusIndicator extends EntityIndicator {
     private void renderStamina(AdvancedCustomHumanoidMobPatch<?> achpatch, Matrix4f mvMatrix, VertexConsumer vertexBuilder) {
         float ratio = Mth.clamp(achpatch.getStamina() / achpatch.getMaxStamina(), 0.0F, 1.0F);
         float barRatio = -0.5F + ratio;
-        int textureRatio = (int) (62 * ratio);
+        int textureRatio = (int) (63 * ratio);
 
-        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, -0.5F, -0.1F, barRatio, -0.05F, 0, 8, textureRatio, 14);
-        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, barRatio, -0.1F, 0.5F, -0.05F, textureRatio, 0, 62, 6);
+        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, -0.5F, -0.1F, barRatio, -0.05F, 0, 8, textureRatio, 15);
+        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, barRatio, -0.1F, 0.5F, -0.05F, textureRatio, 0, 63, 7);
     }
 }
