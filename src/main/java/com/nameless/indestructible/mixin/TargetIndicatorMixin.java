@@ -6,18 +6,19 @@ import com.nameless.indestructible.client.UIConfig;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import yesman.epicfight.client.gui.EntityIndicator;
 import yesman.epicfight.client.gui.TargetIndicator;
 import yesman.epicfight.client.renderer.EpicFightRenderTypes;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
-import javax.annotation.Nullable;
-
 @Mixin(TargetIndicator.class)
 public abstract class TargetIndicatorMixin extends EntityIndicator {
-    @Override
-    public void drawIndicator(LivingEntity entityIn, @Nullable LivingEntityPatch<?> entitypatch, LocalPlayerPatch playerpatch, PoseStack matStackIn, MultiBufferSource bufferIn, float partialTicks) {
+    @Inject(method = "drawIndicator(Lnet/minecraft/world/entity/LivingEntity;Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lyesman/epicfight/client/world/capabilites/entitypatch/player/LocalPlayerPatch;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;F)V", at = @At("HEAD"), cancellable = true, remap = false)
+    public void drawIndicator(LivingEntity entityIn, LivingEntityPatch<?> entitypatch, LocalPlayerPatch playerpatch, PoseStack matStackIn, MultiBufferSource bufferIn, float partialTicks, CallbackInfo ci) {
         float y = UIConfig.REPLACE_UI.get() ? 0.6F : 0.45F;
         Matrix4f mvMatrix = super.getMVMatrix(matStackIn, entityIn, 0.0F, entityIn.getBbHeight() + y, 0.0F, true, partialTicks);
 
@@ -30,6 +31,7 @@ public abstract class TargetIndicatorMixin extends EntityIndicator {
                 this.drawTexturedModalRect2DPlane(mvMatrix, bufferIn.getBuffer(EpicFightRenderTypes.entityIndicator(BATTLE_ICON)), -0.1F, -0.1F, 0.1F, 0.1F, 97, 2, 128, 33);
             }
         }
+        ci.cancel();
     }
 
 }
