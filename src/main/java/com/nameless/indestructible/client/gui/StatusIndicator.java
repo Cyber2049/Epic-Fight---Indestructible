@@ -56,8 +56,11 @@ public class StatusIndicator extends EntityIndicator {
     }
 
     @Override
-    public void drawIndicator(LivingEntity entityIn, @javax.annotation.Nullable LivingEntityPatch<?> entitypatch, LocalPlayerPatch playerpatch, PoseStack matStackIn, MultiBufferSource bufferIn, float partialTicks) {
-        Matrix4f mvMatrix = super.getMVMatrix(matStackIn, entityIn, 0.0F, entityIn.getBbHeight() + 0.4F, 0.0F, true, partialTicks);
+    public void drawIndicator(LivingEntity entityIn, @Nullable LivingEntityPatch<?> entitypatch, LocalPlayerPatch playerpatch, PoseStack matStackIn, MultiBufferSource bufferIn, float partialTicks) {
+        boolean adjustUI = entitypatch instanceof AdvancedCustomHumanoidMobPatch<?> && UIConfig.REPLACE_UI.get();
+        float height = adjustUI ? 0.45F : 0.25F;
+
+        Matrix4f mvMatrix = super.getMVMatrix(matStackIn, entityIn, 0.0F, entityIn.getBbHeight() + height, 0.0F, true, partialTicks);
         Collection<MobEffectInstance> activeEffects = entityIn.getActiveEffects();
 
         if (!activeEffects.isEmpty() && !entityIn.is(playerpatch.getOriginal())) {
@@ -99,8 +102,8 @@ public class StatusIndicator extends EntityIndicator {
         float ratio = Mth.clamp(entityIn.getHealth() / entityIn.getMaxHealth(), 0.0F, 1.0F);
         float healthRatio = -0.5F + ratio;
         int textureRatio = (int) (65 * ratio);
-        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, -0.5F, -0.05F, healthRatio, 0.05F, 0, 26, textureRatio, 35);
-        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, healthRatio, -0.05F, 0.5F, 0.05F, textureRatio, 16, 65, 25);
+        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, -0.5F, -0.05F, healthRatio, 0.08F, 0, 26, textureRatio, 35);
+        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, healthRatio, -0.05F, 0.5F, 0.08F, textureRatio, 16, 65, 25);
 
         if(entitypatch instanceof AdvancedCustomHumanoidMobPatch<?> achpatch){
             this.renderStamina(achpatch, mvMatrix, vertexBuilder);
@@ -113,7 +116,7 @@ public class StatusIndicator extends EntityIndicator {
         float barRatio = -0.5F + ratio;
         int textureRatio = (int) (63 * ratio);
 
-        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, -0.5F, -0.12F, barRatio, -0.05F, 0, 8, textureRatio, 15);
-        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, barRatio, -0.12F, 0.5F, -0.05F, textureRatio, 0, 63, 7);
+        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, -0.5F, -0.15F, barRatio, -0.05F, 0, 8, textureRatio, 15);
+        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, barRatio, -0.15F, 0.5F, -0.05F, textureRatio, 0, 63, 7);
     }
 }

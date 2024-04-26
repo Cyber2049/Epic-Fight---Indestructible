@@ -3,6 +3,7 @@ package com.nameless.indestructible.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
 import com.nameless.indestructible.client.UIConfig;
+import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,7 +20,8 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 public abstract class TargetIndicatorMixin extends EntityIndicator {
     @Inject(method = "drawIndicator(Lnet/minecraft/world/entity/LivingEntity;Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lyesman/epicfight/client/world/capabilites/entitypatch/player/LocalPlayerPatch;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;F)V", at = @At("HEAD"), cancellable = true, remap = false)
     public void drawIndicator(LivingEntity entityIn, LivingEntityPatch<?> entitypatch, LocalPlayerPatch playerpatch, PoseStack matStackIn, MultiBufferSource bufferIn, float partialTicks, CallbackInfo ci) {
-        float y = UIConfig.REPLACE_UI.get() ? 0.6F : 0.45F;
+        boolean adjustUI = entitypatch instanceof AdvancedCustomHumanoidMobPatch<?> && UIConfig.REPLACE_UI.get();
+        float y = adjustUI ? 0.65F : 0.5F;
         Matrix4f mvMatrix = super.getMVMatrix(matStackIn, entityIn, 0.0F, entityIn.getBbHeight() + y, 0.0F, true, partialTicks);
 
         if (entitypatch == null) {
