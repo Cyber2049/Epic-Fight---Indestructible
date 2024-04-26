@@ -626,8 +626,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
             if (this.staminaLoseMultiply > 0 && this.getStunShield() <= 0) {
                 this.setStamina(this.getStamina() - efDamageSource.getImpact() * this.staminaLoseMultiply);
                 if (this.getStamina() < efDamageSource.getImpact()) {
-                    efDamageSource.setStunType(StunType.NONE);
-                    this.applyStun(StunType.NEUTRALIZE, 2.0F);
+                    efDamageSource.setStunType(StunType.NEUTRALIZE);
                     this.setStamina(this.getMaxStamina());
                 }
             }

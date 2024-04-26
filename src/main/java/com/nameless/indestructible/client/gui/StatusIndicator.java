@@ -113,7 +113,7 @@ public class StatusIndicator extends EntityIndicator {
         float barRatio = -0.5F + ratio;
         int textureRatio = (int) (63 * ratio);
 
-        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, -0.5F, -0.1F, barRatio, -0.05F, 0, 8, textureRatio, 15);
-        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, barRatio, -0.1F, 0.5F, -0.05F, textureRatio, 0, 63, 7);
+        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, -0.5F, -0.12F, barRatio, -0.05F, 0, 8, textureRatio, 15);
+        this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder, barRatio, -0.12F, 0.5F, -0.05F, textureRatio, 0, 63, 7);
     }
 }
