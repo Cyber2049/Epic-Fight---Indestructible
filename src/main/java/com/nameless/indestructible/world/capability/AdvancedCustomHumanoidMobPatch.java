@@ -584,6 +584,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                 float stamina = this.getStamina() - impact * this.getStaminaCostMultiply();
                 this.setStamina(stamina);
                 EpicFightParticles.HIT_BLUNT.get().spawnParticleWithArgument(((ServerLevel) this.getOriginal().level), HitParticleType.FRONT_OF_EYES, HitParticleType.ZERO, this.getOriginal(), damageSource.getDirectEntity());
+               //success
                 if (stamina >= 0F) {
                     float counter_cost = this.getCounterStamina();
                     Random random = this.getOriginal().getRandom();
@@ -595,12 +596,14 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                         this.knockBackEntity(damageSource.getDirectEntity().position(), 0.1F);
                         this.setBlockTick(0);
                         this.setStamina(this.getStamina() - counter_cost);
+                        //counter
                     } else {
                         this.playAnimationSynchronized(success, 0.1F);
                         this.playSound(EpicFightSounds.CLASH, -0.05F, 0.1F);
                         this.knockBackEntity(damageSource.getDirectEntity().position(), knockback);
                     }
                     return new AttackResult(AttackResult.ResultType.BLOCKED, amount);
+                    //break
                 } else {
                     this.setBlockTick(0);
                     if (damageSource instanceof EpicFightDamageSource efDamageSource && efDamageSource.getStunType() != StunType.KNOCKDOWN) {
