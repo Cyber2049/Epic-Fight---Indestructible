@@ -27,6 +27,10 @@ public class GuardAnimations {
     public static StaticAnimation MOB_DUAL_SWORD_GUARD;
     public static StaticAnimation MOB_COUNTER_ATTACK;
     public static StaticAnimation MOB_YAMATO_GUARD;
+    public static StaticAnimation MOB_AGONY_GUARD;
+    public static StaticAnimation MOB_RUINE_GUARD;
+    public static StaticAnimation MOB_HERRSCHER_GUARD;
+
     public static void registerAnimations(AnimationRegistryEvent event) {
         event.getRegistryMap().put(Indestructible.MOD_ID, GuardAnimations::build);
     }
@@ -59,7 +63,17 @@ public class GuardAnimations {
             MOB_YAMATO_GUARD = new CustomGuardAnimation("guard/guard_yamato",
                     "yamatomoveset:biped/yamato/yamato_guard_hit", "epicfight:biped/skill/guard_break1", biped);
         }
+
+        if(ModList.get().isLoaded("wom")){
+            MOB_AGONY_GUARD = new CustomGuardAnimation("guard/guard_agony",
+                    "epicfight:biped/skill/guard_spear_hit", "epicfight:biped/skill/guard_break1",biped);
+            MOB_RUINE_GUARD = new CustomGuardAnimation("guard/guard_ruine",
+                    "epicfight:biped/skill/guard_longsword_hit", "epicfight:biped/skill/guard_break1", biped);
+            MOB_HERRSCHER_GUARD = new CustomGuardAnimation("guard/guard_herrscher",
+                    "epicfight:biped/skill/guard_sword_hit", "epicfight:biped/skill/guard_break1", biped);
+        }
     }
+
 
 
 

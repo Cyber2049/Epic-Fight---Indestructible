@@ -19,7 +19,7 @@ apply plugin: 'org.spongepowered.mixin'
 
 
 
-version = '18.5.8'
+version = '18.5.9'
 group = 'com.nameless.indestructible' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'indestructible'
 
@@ -121,6 +121,7 @@ dependencies {
 
     minecraft 'net.minecraftforge:forge:1.18.2-40.2.17'
     implementation fg.deobf("curse.maven:epic-fight-mod-405076:4922082")
+    implementation fg.deobf("curse.maven:weapons-of-miracles-epicfight-918614:5135428")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 

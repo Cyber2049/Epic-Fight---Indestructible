@@ -614,9 +614,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                     this.setStamina(this.getMaxStamina());
                     if(!this.stunEvents.isEmpty()){
                             for(AnimationEvent.ConditionalEvent event: this.stunEvents) {
-                                {
                                     event.testAndExecute(this, StunType.NEUTRALIZE.ordinal());
-                                }
                             }
                     }
                     return new AttackResult(AttackResult.ResultType.SUCCESS, amount/2);

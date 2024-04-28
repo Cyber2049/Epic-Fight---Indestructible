@@ -34,10 +34,12 @@ public class AdvancedChasingGoal<T extends AdvancedCustomHumanoidMobPatch<?>> ex
 		if (mobpatch.getStrafingTime() > 0) {
 			mobpatch.setStrafingTime(mobpatch.getStrafingTime() - 1);
 			this.mob.getNavigation().stop();
-			this.mob.getMoveControl().strafe(withDistance ? mobpatch.getStrafingForward() : 0, mobpatch.getStrafingClockwise());
+			this.mob.lookAt(target,30F,30F);
+			this.mob.getMoveControl().strafe(withDistance && mobpatch.getStrafingForward() > 0 ? 0 : mobpatch.getStrafingForward(), mobpatch.getStrafingClockwise());
 		} else if (withDistance) {
 			this.mob.getNavigation().stop();
 		} else if (this.mobpatch.isBlocking()) {
+			this.mob.lookAt(target,30F,30F);
 			this.mob.getNavigation().moveTo(target, this.speed * 0.8F);
 		} else {
 			super.tick();

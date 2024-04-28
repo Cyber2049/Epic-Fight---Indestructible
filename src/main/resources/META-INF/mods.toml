@@ -43,3 +43,9 @@ description='''
     versionRange="[0,)"
     ordering="BEFORE"
     side="BOTH"
+[[dependencies.indestructible]]
+    modId="wom"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="BEFORE"
+    side="BOTH"
