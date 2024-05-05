@@ -1,25 +1,29 @@
-//先看英文的的教程，中文还未及时更新
+// 仅作为教程，不可以直接用于数据包
+// 如果你想制作由本mod接管的生物ai请确保数据包路径为： "你数据包的名字":data/"生物所属的mod id"/advanced_mobpatch/"生物的id".json
+// 基于史诗战斗数据包的扩展，完全兼容史诗战斗本来的生物数据包，如果你对史诗战斗生物数据包有疑惑，请先从史诗战斗的开始
+// 仅支持人型生物，后续支持非人型的可能性也不大
+
 {
 	"model": "epicfight:entity/skeleton",
 	"armature": "epicfight:entity/skeleton",
 	"renderer": "skeleton",
 	"isHumanoid": true,
 	"faction": "undead",
-	"advanced": true, 	//必须开启，才能使用所有该模组附加的特性；关闭为史诗战斗原版自定义生物
-	"attributes": {			//新增的属性都为非必须填写，没写就是默认值
+	"advanced": true, 			//xx.0.7以前的版本为必须. xx.5.3+版本确保你数据包路径即可
+	"attributes": {
 		"impact": 2.5,
 		"armor_negation": 5.0,
 		"max_strikes": 3,
 		"chasing_speed": 0.90,
-        "scale": 1.3,
-		"max_stamina": 15, //怪物耐力，默认15
-		"stamina_regan_multiply": 1.0, //耐力恢复倍率，默认1
-		"stamina_regan_delay": 30, //耐力回复延迟，单位tick，默认30，采取行动后回复耐力的间隔时间
-		"has_stun_reduction": true, //史诗战斗原版硬直削弱机制，默认开启，会根据硬直次数减轻硬直惩罚
-		"max_stun_shield": 0, //韧性最大值，默认为0为关闭韧性机制。设置为大于0时，开启韧性机制，怪物受击会先根据冲击扣除韧性，当韧性为0才会造成硬直
-		"stun_shield_regan_multiply": 1, //韧性回复倍率，开启韧性机制才有效果，默认1。当怪物不处在受击状态并且韧性不满且不为0的情况下会缓慢回复韧性 （3% x 回复倍率）/s
-		"stun_shield_regan_delay": 30, //韧性回复延迟，单位tick，开启韧性机制才有效果，默认30。当韧性被清空后，直接回满韧性的延迟时间。
-		"stamina_lose_multiply": 0 //受击失去耐力的倍率，默认为0该机制为关闭状态。设置为大于0时，会根据冲击乘以该倍率，扣除怪物耐力值，优先级低于韧性（韧性为0或关闭韧性机制时，受击才会扣除），当怪物耐力扣除至0时会被击倒（破防状态）
+		"scale": 1.3,
+		"max_stamina": 15, 		 //非必须, 生物的最大耐力值，默认或不填为 15
+		"stamina_regan_multiply": 1.0, 	 //非必须, 耐力的回复速率，默认或不填为 1
+		"stamina_regan_delay": 30,  	 //非必须, 在行动后，耐力回复的延迟时间, 默认或不填为 30 tick
+		"has_stun_reduction": true, 	 //非必须, 连续硬直衰减机制，怪物连续收到硬直时，硬直效果会减弱，由史诗战斗默认开启，默认或不填为开启
+		"max_stun_shield": 0, 		 //非必须, 眩晕盾最大值（一般理解为韧性最大值），怪物收到攻击时会优先根据伤害的冲击值抵消掉韧性，当韧性为0怪物才会开始硬直，默认或不填为 0，默认无韧性
+		"stun_shield_regan_multiply": 1, //非必须, 眩晕盾（韧性）回复速率，只有当眩晕盾最大值大于0时才有效果，实际回复速率为（3% x 速率）每秒 ，默认或不填为 1
+		"stun_shield_regan_delay": 30, 	 //非必须, 眩晕盾（韧性）耗尽回复延迟时间，类似耐力回复时间，眩晕盾（韧性）耗光后，开始回复前的延迟时间,仅在怪物由眩晕盾（韧性）才有效果，默认或不填为 30 tick
+		"stamina_lose_multiply": 0 	 //非必须, 受到攻击时候耐力损伤的倍率， 在生物收到攻击并且眩晕盾（韧性）为0时，会损失 （倍率 * 伤害冲击值） 的耐力。 默认或不填为 0，为机制关闭状态
 	},
 	"default_livingmotions": {
 		"idle": "epicfight:biped/living/idle",
@@ -28,31 +32,31 @@
 		"death": "epicfight:biped/living/death"
 	},
 	"humanoid_weapon_motions": [
-		  {
+		{
 			"weapon_categories": ["axe", "hoe", "pickaxe", "shovel", "sword"],
 			"style":"common",
 			"livingmotions": {
 				"chase": "epicfight:biped/living/hold_longsword",
-                "walk": "epicfight:biped/living/walk"
+				"walk": "epicfight:biped/living/walk"
 			}
-		  },
-              { 
-                  "weapon_categories": ["longsword"],
-                  "style":"common", 
-                  "livingmotions": {
-                        "chase": "epicfight:biped/living/hold_longsword",
-                        "walk": "epicfight:biped/living/hold_longsword"
-                  }
-              }
+		},
+		{
+			"weapon_categories": ["longsword"],
+			"style":"common",
+			"livingmotions": {
+				"chase": "epicfight:biped/living/hold_longsword",
+				"walk": "epicfight:biped/living/hold_longsword"
+			}
+		}
 	],
-	"custom_guard_motion": [											//使用格挡必须填写
-            { 
-                  "weapon_categories": ["longsword","tachi","sword"],//必须，武器类型
-                  "style":"common", 								//必须，武器持握类型，除去双持双剑（two_hand），不会写无脑common
-                  "guard": "indestructible:guard/guard_longsword",//必须，格挡动画
-				  "stamina_cost_multiply": 1, //非必须，默认为1，防御耐力消耗倍率
-				  "can_block_projectile" : false //非必须，默认否，能否抵御弓箭
-            }
+	"custom_guard_motion": [				    			 //必须，为了让怪物可以防御
+		{
+			"weapon_categories": ["longsword","tachi","sword"],//必须，武器种类
+			"style":"common", 				    			 //必须
+			"guard": "indestructible:guard/guard_longsword",   //必须, 防御动画的，支持的动画可查看本mod的 assets文件里guard开头的动画
+			"stamina_cost_multiply": 1, 	     		     //非必须, 在这些种类武器下，防御消耗耐力的倍率，默认或不填为 1
+			"can_block_projectile" : false     	 	     //非必须， 在这些种类武器下，防御能否挡住箭矢
+		}
 	],
 	"stun_animations": {
 		"short": "epicfight:biped/combat/hit_short",
@@ -60,8 +64,11 @@
 		"knockdown": "epicfight:biped/combat/knockdown",
 		"fall": "epicfight:biped/living/landing"
 	},
+	"stun_command_list":[ 																		//非必须， 生物硬直时会执行的指令列表
+		{"command":"effect give @s epicfight:stun_immunity 6000 5", "stun_type": "short"}		//前置为指令，后者为硬直类型 ，具体类型种类同stun_animations
+	],
 	"combat_behavior": [
-            {
+		{
 			"weapon_categories": ["sword","longsword"],
 			"style": "common",
 			"behavior_series": [
@@ -69,18 +76,18 @@
 					"weight": 1.5,
 					"canBeInterrupted": true,
 					"looping": false,
-					"behaviors": [
+					"behaviors": [						//3种生物行为的大类， animation执行动画，guard执行防御动作，wander执行游荡
 						{
 							"conditions": [
 								{"predicate":"within_eye_height"}, {"predicate":"within_distance", "min": 3.0, "max": 5.0}
 							],
-							"guard": 60, //格挡时间，必须
-							"counter": "indestructible:guard/knee", //反击动画，非必须，不写默认为示例动作
-							"counter_cost": 3, //反击耐力消耗，非必须默认为3，耐力低于消耗无法反击
-							"counter_chance": 0.3, //反击概率，非必须默认为0.3，设置0为不反击
-							"counter_speed": 1 //反击速度，非必须默认1
+							"guard": 60, 				//必须，具体行为种类，单次防御的时间，非绝对的执行时间，为动态时间（可理解为单次防御可能的最大时间）会根据敌对生物的行为取消
+							"counter": "epicfight:wither_skeleton/sword_attack1", //非必须, 本次防御可能会采取防御反击动画，不填默认为膝顶
+							"counter_cost": 3, 			//非必须，反击会消耗的耐力，默认为 3
+							"counter_chance": 0.3, 			//非必须，反击的机率，默认为 0.3
+							"counter_speed": 1 			//非必须，反击动画的速度，仅能改变攻击类型动画的速度，默认为 1
 						}
-                        ]                 
+					]
 				},
 				{
 					"weight": 1.5,
@@ -91,36 +98,44 @@
 							"conditions": [
 								{"predicate":"within_eye_height"}, {"predicate":"within_distance", "min": 0.0, "max": 5.0}
 							],
-							"animation": "epicfight:wither_skeleton/sword_attack1", //众所周知，必须
-							"play_speed": 1.1, //攻击速度，非必须，默认1
-							"stamina": 0, //耐力消耗，非必须默认0，耐力低于消耗仍会使用动作，如果希望耐力低于消耗不使用该动作，请在条件内添加
-							"convert_time": 0, //前后动作衔接时间，非必须默认为0
-							"command_list": [																//指令执行表，非必须，默认为空，不执行任何指令，可添加多个指令事件
-								{"time":0.5, "command":"give @s minecraft:stick", "execute_at_target":true}	 	//具体指令事件， time为执行时间，当动作行进到该时间点时执行，command为指令内容，execute_at_target为执行人，false为自身，true为目标
-							]
+							"animation": "epicfight:wither_skeleton/sword_attack1", 				//必须，具体行为种类，播放动画
+							"play_speed": 1.1, 									//非必须 攻击速度，仅能改变攻击类型动画的速度，默认为 1
+							"stamina": 0, 										//非必须，采取该行为的耐力消耗，默认为0
+							"convert_time": 0, 									//非必须, 与前一个动画的过度时间，默认为 0
+							"command_list": [									//非必须, 时间指令列表，采取该行动时候会根据时间连携执行的指令
+								{"time":0.5, "command":"give @s minecraft:stick", "execute_at_target":true}	//单个指令事件， "time"相对于动画的执行时间，"command"指令，"execute_at_target"是否对该生物的目标执行，false时执行对象为自身，true时候执行对象是该生物的目标
+							],
+							"hit_command_list": [									//非必须, 命中指令列表，当动画为攻击动画时，命中目标时会执行的指令
+								{"command":"give @s minecraft:stick", "execute_at_target":true}			//单个指令时间， "command"指令，"execute_at_target"是否对该生物的目标执行，false时执行对象为自身，true时候执行对象是攻击命中的对象
+							],
+							"set_phase": 1, 	    								//非必须, 自定义的阶段,  采取该行动时候生物会转变到的自定义阶段，默认为不变，主要用于行为执行的条件检测
+							"damage_modifier": {	    								//非必须, 伤害修饰，当动画为攻击类型时能修改该攻击的数值
+								"damage": 1, 	    								//伤害倍率，默认为 1
+								"impact": 1, 	   								//冲击倍率，默认为 1
+								"armor_negation": 1								//破甲倍率，默认为 1 不高于100%
+							}
+
 						},
 						{
 							"conditions": [
-								{"predicate":"within_eye_height"},
-								{"predicate":"phase", "min": 0, "max": 0} // 检测自定义阶段
+								{"predicate":"within_eye_height"}
 							],
-							"animation": "epicfight:wither_skeleton/sword_attack2",
-							"play_speed": 1.1,
-							"set_phase": 1 //设置自定义阶段 支持阶段 0 - 20 
-						},
-						{
-							"conditions": [
-								{"predicate":"within_eye_height"}, 
-								{"predicate":"within_distance", "min": 3.0, "max": 8.0}, 
-								{"predicate":"within_angle", "min": -30.0, "max": 30.0}
-							],
-							"animation": "epicfight:biped/combat/longsword_dash",
-							"convert_time": 0.15
+							"wander": 300,             //必须，具体行为种类，游荡的绝对时间
+							"inaction_time": 300,	   //非必须, 不采取攻击或防御动画的时间，默认同游荡时间
+							"x_axis": 1,		   //非必须, 相对与目标的在x轴上的向量，从-1到1，大于0时候会绕目标顺时针运动，反之为逆时针运动
+							"z_axis": -1		   //非必须,相对于目标z轴上的向量，从-1到1，大于0前进，反之后退
 						}
-                        ]                 
+					]
 				}
 			]
 		}
 	]
 }
-//旧版的附加的predicate条件全都能用但仅支持设置成"advanced"的怪物
+
+//本mod也提供了部分新的行为检测条件
+// "guard_break":  // {"predicate":"guard_break", "invert": false} 检测目标是否处于破防状态，当invert为true时，为检测目标不处于破防状态
+// "knock_down": // {"predicate":"knock_down", "invert": false} 检测目标是否处于倒地状态，当invert为true时，为检测目标不处于倒地状态
+// "attack_level": // {"predicate":"attack_level", "min": 1, "max": 1} 检测目标所处攻击阶段， 0为空闲阶段，1为前摇阶段，2为命中判定阶段，3为后摇阶段
+// "stamina": // {"predicate": "stamina", "stamina": 30, "comparator": "greater_ratio"} 检测自身耐力值，同生命检测
+// "using_item": // {"predicate":"using_item", "edible": true} 检测目标是否在使用物品，"edible"为true时仅检测目标是否使用食物或者药水，false时为检测使用物品部位食物或药水
+// "phase": // {"predicate":"phase", "min": 1, "max": 1} 检测自身的自定义阶段，阶段可有行为或者指令改变
