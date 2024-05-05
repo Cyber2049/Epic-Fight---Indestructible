@@ -22,7 +22,7 @@
 		"has_stun_reduction": true, 	 //非必须, 连续硬直衰减机制，怪物连续收到硬直时，硬直效果会减弱，由史诗战斗默认开启，默认或不填为开启
 		"max_stun_shield": 0, 		 //非必须, 眩晕盾最大值（一般理解为韧性最大值），怪物收到攻击时会优先根据伤害的冲击值抵消掉韧性，当韧性为0怪物才会开始硬直，默认或不填为 0，默认无韧性
 		"stun_shield_regan_multiply": 1, //非必须, 眩晕盾（韧性）回复速率，只有当眩晕盾最大值大于0时才有效果，实际回复速率为（3% x 速率）每秒 ，默认或不填为 1
-		"stun_shield_regan_delay": 30, 	 //非必须, 眩晕盾（韧性）耗尽回复延迟时间，类似耐力回复时间，眩晕盾（韧性）耗光后，开始回复前的延迟时间,仅在怪物由眩晕盾（韧性）才有效果，默认或不填为 30 tick
+		"stun_shield_regan_delay": 30, 	 //非必须, 眩晕盾（韧性）耗尽回复延迟时间，类似耐力回复时间，眩晕盾（韧性）耗光后，开始回复前的延迟时间,仅在怪物有眩晕盾（韧性）才有效果，默认或不填为 30 tick
 		"stamina_lose_multiply": 0 	 //非必须, 受到攻击时候耐力损伤的倍率， 在生物收到攻击并且眩晕盾（韧性）为0时，会损失 （倍率 * 伤害冲击值） 的耐力。 默认或不填为 0，为机制关闭状态
 	},
 	"default_livingmotions": {
@@ -137,5 +137,5 @@
 // "knock_down": // {"predicate":"knock_down", "invert": false} 检测目标是否处于倒地状态，当invert为true时，为检测目标不处于倒地状态
 // "attack_level": // {"predicate":"attack_level", "min": 1, "max": 1} 检测目标所处攻击阶段， 0为空闲阶段，1为前摇阶段，2为命中判定阶段，3为后摇阶段
 // "stamina": // {"predicate": "stamina", "stamina": 30, "comparator": "greater_ratio"} 检测自身耐力值，同生命检测
-// "using_item": // {"predicate":"using_item", "edible": true} 检测目标是否在使用物品，"edible"为true时仅检测目标是否使用食物或者药水，false时为检测使用物品部位食物或药水
-// "phase": // {"predicate":"phase", "min": 1, "max": 1} 检测自身的自定义阶段，阶段可有行为或者指令改变
+// "using_item": // {"predicate":"using_item", "edible": true} 检测目标是否在使用物品，"edible"为true时仅检测目标是否使用食物或者药水，false时为检测使用物品不为食物或药水
+// "phase": // {"predicate":"phase", "min": 1, "max": 1} 检测自身的自定义阶段，阶段可由行为或者指令改变
