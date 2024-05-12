@@ -1,31 +1,19 @@
 package com.nameless.indestructible.api.animation.types;
 
-import net.minecraft.world.entity.LivingEntity;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.model.Armature;
-import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
-import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 public class CustomGuardAnimation extends StaticAnimation {
 
 	public final String successAnimation;
-	public final String failAnimation;
+	public final Boolean isShield;
 
-	public CustomGuardAnimation(String path, String successanimation, String failanimation, Armature armature) {
+	public CustomGuardAnimation(String path, String successanimation, Armature armature, boolean isShield) {
 		super(0.05F,true, path, armature);
 		this.successAnimation = successanimation;
-		this.failAnimation = failanimation;
+		this.isShield = isShield;
 	}
-
-	@Override
-	public void begin(LivingEntityPatch<?> entitypatch) {
-		super.begin(entitypatch);
-		if (entitypatch instanceof MobPatch) {
-			LivingEntity target = entitypatch.getTarget();
-
-			if (target != null) {
-				entitypatch.rotateTo(target, entitypatch.getYRotLimit(), false);
-			}
-		}
+	public CustomGuardAnimation(String path, String successanimation, Armature armature){
+		this(path,successanimation,armature,false);
 	}
 }

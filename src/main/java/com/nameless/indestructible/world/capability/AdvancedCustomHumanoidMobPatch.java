@@ -13,6 +13,7 @@ import com.nameless.indestructible.world.ai.goal.GuardGoal;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -87,10 +88,10 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     //block
     private final float staminaLoseMultiply;
     private int block_tick;
+    private boolean cancel_block;
     private int tickSinceLastAction;
     private int tickSinceBreakShield;
     private CounterMotion counterMotion;
-    private final int guardCancelTime;
     private final float guardRadius;
     //event
     private DamageSourceModifier damageSourceModifier = null;
@@ -108,19 +109,18 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public AdvancedCustomHumanoidMobPatch(Faction faction, AdvancedCustomHumanoidMobPatchProvider provider) {
         super(faction);
         this.provider = provider;
-        this.regenStaminaStandbyTime = provider.getRegenStaminaStandbyTime();
-        this.regenStaminaMultiply = provider.getRegenStaminaMultiply();
-        this.maxStamina = provider.getMaxStamina();
-        this.hasStunReduction = provider.hasStunReduction();
-        this.maxStunShield = provider.getMaxStunShield();
-        this.reganShieldStandbyTime = provider.getReganShieldStandbyTime();
-        this.reganShieldMultiply = provider.getReganShieldMultiply();
-        this.staminaLoseMultiply = provider.getStaminaLoseMultiply();
-        this.weaponLivingMotions = provider.getHumanoidWeaponMotions();
-        this.weaponAttackMotions = provider.getHumanoidCombatBehaviors();
-        this.guardMotions = provider.getGuardMotions();
-        this.guardCancelTime = provider.getGuardCancelTime();
-        this.guardRadius = provider.getGuardRadius();
+        this.regenStaminaStandbyTime = this.provider.getRegenStaminaStandbyTime();
+        this.regenStaminaMultiply = this.provider.getRegenStaminaMultiply();
+        this.maxStamina = this.provider.getMaxStamina();
+        this.hasStunReduction = this.provider.hasStunReduction();
+        this.maxStunShield = this.provider.getMaxStunShield();
+        this.reganShieldStandbyTime = this.provider.getReganShieldStandbyTime();
+        this.reganShieldMultiply = this.provider.getReganShieldMultiply();
+        this.staminaLoseMultiply = this.provider.getStaminaLoseMultiply();
+        this.weaponLivingMotions = this.provider.getHumanoidWeaponMotions();
+        this.weaponAttackMotions = this.provider.getHumanoidCombatBehaviors();
+        this.guardMotions = this.provider.getGuardMotions();
+        this.guardRadius = this.provider.getGuardRadius();
     }
 
     @Override
@@ -136,7 +136,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         super.onJoinWorld(entityIn, event);
         this.tickSinceLastAction = 0;
         this.tickSinceBreakShield = 0;
-        this.block_tick = 0;
+        this.block_tick = 30;
         this.setStamina(this.getMaxStamina());
         this.setAttackSpeed(1F);
         this.setPhase(0);
@@ -156,7 +156,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
             super.serverTick(event);
         }
 
-        if (!this.state.inaction() && this.getBlockTick() <= 0) {
+        if (!this.state.inaction() && this.isBlocking()) {
             this.tickSinceLastAction++;
         }
 
@@ -250,6 +250,9 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public int getBlockTick(){return this.block_tick;}
     public void setBlocking(boolean blocking){this.original.getEntityData().set(IS_BLOCKING, blocking);}
     public boolean isBlocking(){return this.original.getEntityData().get(IS_BLOCKING);}
+    public void cancelBlock(boolean setCancel){
+        this.cancel_block = setCancel;
+    }
     public float getMaxStamina() {
         return this.maxStamina;
     }
@@ -284,12 +287,9 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public float getCounterSpeed(){
         return this.counterMotion.speed;
     }
-    public int getGuardCancelTime(){return this.guardCancelTime;}
-
     public void resetActionTick() {
         this.tickSinceLastAction = 0;
     }
-
     public int getTickSinceLastAction() {
         return this.tickSinceLastAction;
     }
@@ -549,10 +549,9 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
     private AttackResult tryProcess(DamageSource damageSource, float amount){
         //TRY BLOCK
-        if (this.getBlockTick() > 0) {
+        if (this.isBlocking()) {
             CustomGuardAnimation animation = this.getGuardAnimation();
             StaticAnimation success = animation.successAnimation != null ? EpicFightMod.getInstance().animationManager.findAnimationByPath(animation.successAnimation) : Animations.SWORD_GUARD_HIT;
-            StaticAnimation fail = animation.failAnimation != null ? EpicFightMod.getInstance().animationManager.findAnimationByPath(animation.failAnimation) : Animations.BIPED_COMMON_NEUTRALIZED;
             boolean isFront = false;
             boolean canBlockSource = !damageSource.isExplosion() && !damageSource.isMagic() && !damageSource.isBypassInvul() && (!damageSource.isProjectile() || this.canBlockProjectile());
             Vec3 sourceLocation = damageSource.getSourcePosition();
@@ -594,29 +593,20 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                         this.playAnimationSynchronized(this.getCounter(),0);
                         this.playSound(EpicFightSounds.CLASH, -0.05F, 0.1F);
                         this.knockBackEntity(damageSource.getDirectEntity().position(), 0.1F);
-                        this.setBlockTick(0);
+                        if(this.cancel_block){this.setBlocking(false);}
                         this.setStamina(this.getStamina() - counter_cost);
                         //counter
                     } else {
                         this.playAnimationSynchronized(success, 0.1F);
-                        this.playSound(EpicFightSounds.CLASH, -0.05F, 0.1F);
+                        this.playSound(animation.isShield ? SoundEvents.SHIELD_BLOCK : EpicFightSounds.CLASH, -0.05F, 0.1F);
                         this.knockBackEntity(damageSource.getDirectEntity().position(), knockback);
                     }
                     return new AttackResult(AttackResult.ResultType.BLOCKED, amount);
                     //break
                 } else {
-                    this.setBlockTick(0);
-                    if (damageSource instanceof EpicFightDamageSource efDamageSource && efDamageSource.getStunType() != StunType.KNOCKDOWN) {
-                        efDamageSource.setStunType(StunType.NONE);
-                    }
-                    this.playSound(EpicFightSounds.NEUTRALIZE_MOBS, 3.0F, 0.0F, 0.1F);
-                    this.playAnimationSynchronized(fail, 0.1F);
+                    this.setBlocking(false);
+                    this.applyStun(StunType.NEUTRALIZE,2.0F);
                     this.setStamina(this.getMaxStamina());
-                    if(!this.stunEvents.isEmpty()){
-                            for(AnimationEvent.ConditionalEvent event: this.stunEvents) {
-                                    event.testAndExecute(this, StunType.NEUTRALIZE.ordinal());
-                            }
-                    }
                     return new AttackResult(AttackResult.ResultType.SUCCESS, amount/2);
                 }
             }
@@ -625,7 +615,10 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         //TRY HURT
         if(damageSource instanceof EpicFightDamageSource efDamageSource) {
             if (this.staminaLoseMultiply > 0 && this.getStunShield() <= 0) {
-                this.setStamina(this.getStamina() - efDamageSource.getImpact() * this.staminaLoseMultiply);
+                DynamicAnimation animation = this.getAnimator().getPlayerFor(null).getAnimation();
+                if(animation != Animations.BIPED_COMMON_NEUTRALIZED && animation != Animations.GREATSWORD_GUARD_BREAK) {
+                    this.setStamina(this.getStamina() - efDamageSource.getImpact() * this.staminaLoseMultiply);
+                }
                 if (this.getStamina() < efDamageSource.getImpact()) {
                     efDamageSource.setStunType(StunType.NEUTRALIZE);
                     this.setStamina(this.getMaxStamina());
@@ -653,7 +646,6 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     @Override
     public void onDeath(LivingDeathEvent event) {
         this.resetMotion();
-        this.setBlockTick(0);
         this.setBlocking(false);
         this.getAnimator().playDeathAnimation();
         this.currentLivingMotion = LivingMotions.DEATH;
@@ -670,7 +662,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public boolean applyStun(StunType stunType, float time){
         DynamicAnimation animation = this.getAnimator().getPlayerFor(null).getAnimation();
         if(animation == Animations.BIPED_COMMON_NEUTRALIZED || animation == Animations.GREATSWORD_GUARD_BREAK) {
-            stunType = StunType.NONE;
+            stunType = stunType == StunType.KNOCKDOWN ? stunType : StunType.NONE;
         }
         if(!this.stunEvents.isEmpty()){
             if(this.getHitAnimation(stunType) != null){
@@ -680,6 +672,14 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
             }
         }
         return super.applyStun(stunType, time);
+    }
+    @Override
+    public void knockBackEntity(Vec3 sourceLocation, float power) {
+        DynamicAnimation animation = this.getAnimator().getPlayerFor(null).getAnimation();
+        if(animation == Animations.BIPED_COMMON_NEUTRALIZED || animation == Animations.GREATSWORD_GUARD_BREAK) {
+            return;
+        }
+        super.knockBackEntity(sourceLocation,power);
     }
 
     public record CustomAnimationMotion(StaticAnimation animation, float convertTime, float speed, float stamina) { }

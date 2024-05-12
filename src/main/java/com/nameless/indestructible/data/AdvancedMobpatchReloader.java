@@ -127,8 +127,8 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
             if (!clientSide) {
                 provider.stunAnimations = deserializeStunAnimations(tag.getCompound("stun_animations"));
                 provider.chasingSpeed = tag.getCompound("attributes").getDouble("chasing_speed");
-                provider.humanoidCombatBehaviors = deserializeAdvancedCombatBehaviors(tag.getList("combat_behavior", 10));
-                provider.humanoidWeaponMotions = deserializeHumanoidWeaponMotions(tag.getList("humanoid_weapon_motions", 10));
+                provider.AHCombatBehaviors = deserializeAdvancedCombatBehaviors(tag.getList("combat_behavior", 10));
+                provider.AHWeaponMotions = deserializeHumanoidWeaponMotions(tag.getList("humanoid_weapon_motions", 10));
                 provider.guardMotions = deserializeGuardMotions(tag.getList("custom_guard_motion",10));
                 provider.regenStaminaStandbyTime = tag.getCompound("attributes").contains("stamina_regan_delay") ? tag.getCompound("attributes").getInt("stamina_regan_delay") : 30;
                 provider.regenStaminaMultiply = tag.getCompound("attributes").contains("stamina_regan_multiply") ? (float)tag.getCompound("attributes").getDouble("stamina_regan_multiply") : 1F;
@@ -137,7 +137,6 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                 provider.reganShieldMultiply = tag.getCompound("attributes").contains("stun_shield_regan_multiply") ? (float)tag.getCompound("attributes").getDouble("stun_shield_multiply") : 1F;
                 provider.staminaLoseMultiply = tag.getCompound("attributes").contains("stamina_lose_multiply") ? (float)tag.getCompound("attributes").getDouble("stamina_lose_multiply") : 0F;
                 provider.guardRadius = tag.getCompound("attributes").contains("guard_radius") ? (float)tag.getCompound("attributes").getDouble("guard_radius") : 3F;
-                provider.guardCancelTime = tag.getCompound("attributes").contains("guard_cancel_time") ? tag.getCompound("attributes").getInt("guard_cancel_time") : 30;
                 provider.stunEvent = deserializeStunCommandList(tag.getList("stun_command_list", 10));
             }
             return provider;
@@ -192,8 +191,8 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
 
 
     public static class AdvancedCustomHumanoidMobPatchProvider extends MobPatchReloadListener.AbstractMobPatchProvider {
-        protected Map<WeaponCategory, Map<Style, CombatBehaviors.Builder<HumanoidMobPatch<?>>>> humanoidCombatBehaviors;
-        protected Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, StaticAnimation>>>> humanoidWeaponMotions;
+        protected Map<WeaponCategory, Map<Style, CombatBehaviors.Builder<HumanoidMobPatch<?>>>> AHCombatBehaviors;
+        protected Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, StaticAnimation>>>> AHWeaponMotions;
         protected Map<WeaponCategory, Map<Style,Pair<StaticAnimation,Pair<Float, Boolean>>>> guardMotions;
         protected int regenStaminaStandbyTime;
         protected float regenStaminaMultiply;
@@ -203,7 +202,6 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         protected float reganShieldMultiply;
         protected float staminaLoseMultiply;
         protected float guardRadius;
-        protected int guardCancelTime;
         protected List<Pair<LivingMotion, StaticAnimation>> defaultAnimations;
         protected Map<StunType, StaticAnimation> stunAnimations;
         protected Map<Attribute, Double> attributeValues;
@@ -221,11 +219,11 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         }
 
         public Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, StaticAnimation>>>> getHumanoidWeaponMotions() {
-            return this.humanoidWeaponMotions;
+            return this.AHWeaponMotions;
         }
 
         public Map<WeaponCategory, Map<Style, CombatBehaviors.Builder<HumanoidMobPatch<?>>>> getHumanoidCombatBehaviors() {
-            return this.humanoidCombatBehaviors;
+            return this.AHCombatBehaviors;
         }
 
         public Map<WeaponCategory, Map<Style,Pair<StaticAnimation,Pair<Float, Boolean>>>> getGuardMotions(){
@@ -260,7 +258,6 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         public float getReganShieldMultiply() {return this.reganShieldMultiply;}
         public float getStaminaLoseMultiply(){return this.staminaLoseMultiply;}
         public float getGuardRadius(){return this.guardRadius;}
-        public int getGuardCancelTime(){return this.guardCancelTime;}
         public List<AnimationEvent.ConditionalEvent> getStunEvent(){
             return this.stunEvent;
         };
@@ -365,8 +362,9 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                     float cost = behavior.contains("counter_cost") ? (float) behavior.getDouble("counter_cost") : 3.0F;
                     float chance = behavior.contains("counter_chance") ? (float)behavior.getDouble("counter_chance") : 0.3F;
                     float speed = behavior.contains("counter_speed") ? (float)behavior.getDouble("counter_speed") : 1F;
+                    boolean cancel = !behavior.contains("cancel_after_counter") || behavior.getBoolean("cancel_after_counter");
                     int phase = behavior.contains("set_phase") ? behavior.getInt("set_phase") : -1;
-                    behaviorBuilder.behavior(setGuardMotion(guardTime, counter, cost, chance, speed, phase));
+                    behaviorBuilder.behavior(setGuardMotion(guardTime, counter, cost, chance, speed, cancel, phase));
                 } else if (behavior.contains("wander")){
                     int strafingTime = behavior.getInt("wander");
                     int inactionTime = behavior.contains("inaction_time") ?  behavior.getInt("inaction_time") : behavior.getInt("wander");
@@ -415,11 +413,13 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         };
     }
 
-    public static <T extends MobPatch<?>> Consumer<T> setGuardMotion(int guardTime, StaticAnimation counter, float cost, float chance, float speed, int phase) {
+    public static <T extends MobPatch<?>> Consumer<T> setGuardMotion(int guardTime, StaticAnimation counter, float cost, float chance, float speed, boolean cancel, int phase) {
         return (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
+                advancedCustomHumanoidMobPatch.setBlocking(true);
                 advancedCustomHumanoidMobPatch.setBlockTick(guardTime);
                 advancedCustomHumanoidMobPatch.setCounterMotion(counter,cost,chance,speed);
+                advancedCustomHumanoidMobPatch.cancelBlock(cancel);
                 if(phase >= 0)advancedCustomHumanoidMobPatch.setPhase(phase);
             }
         };

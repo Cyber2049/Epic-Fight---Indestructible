@@ -9,7 +9,6 @@ import com.nameless.indestructible.command.AHPatchSetLookAtCommand;
 import com.nameless.indestructible.command.AHPatchSetPhaseCommand;
 import com.nameless.indestructible.data.AdvancedMobpatchReloader;
 import com.nameless.indestructible.gameasset.GuardAnimations;
-import com.nameless.indestructible.network.NetworkManager;
 import com.nameless.indestructible.network.SPDatapackSync;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -30,13 +29,13 @@ import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import yesman.epicfight.client.gui.EntityIndicator;
+import yesman.epicfight.network.EpicFightNetworkManager;
 
 @Mod(Indestructible.MOD_ID)
 public class Indestructible {
     public static final String MOD_ID = "indestructible";
     public static final Logger LOGGER = LogManager.getLogger(Indestructible.MOD_ID);
     public Indestructible(){
-        MinecraftForge.EVENT_BUS.register(this);
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         bus.addListener(GuardAnimations::registerAnimations);
         bus.addListener(this::doCommonStuff);
@@ -48,7 +47,7 @@ public class Indestructible {
     }
 
     private void doCommonStuff(final FMLCommonSetupEvent event) {
-        event.enqueueWork(NetworkManager::registerPackets);
+        EpicFightNetworkManager.INSTANCE.registerMessage(99, SPDatapackSync.class, SPDatapackSync::toBytes, SPDatapackSync::fromBytes, SPDatapackSync::handle);
     }
     private void doClientStuff(final FMLClientSetupEvent event){
         EntityIndicator.ENTITY_INDICATOR_RENDERERS.add(new StatusIndicator());
@@ -64,10 +63,10 @@ public class Indestructible {
         if (player == null || !player.getServer().isSingleplayerOwner(player.getGameProfile())) {
             SPDatapackSync mobPatchPacket = new SPDatapackSync(AdvancedMobpatchReloader.getTagCount());
             AdvancedMobpatchReloader.getDataStream().forEach(mobPatchPacket::write);
-            NetworkManager.sendToClient(mobPatchPacket, target);
-        }
+            EpicFightNetworkManager.sendToClient(mobPatchPacket, target);
     }
 
+}
     private void registerCommands(final RegisterCommandsEvent event){
         event.getDispatcher().register(
                 LiteralArgumentBuilder.<CommandSourceStack>literal(Indestructible.MOD_ID)

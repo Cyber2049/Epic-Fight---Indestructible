@@ -15,7 +15,7 @@ public class AdvancedCombatGoal<T extends HumanoidMobPatch<?>> extends AnimatedA
 	@Override
 	public void tick() {
 
-		boolean inaction = this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch && (ACHMobpatch.getBlockTick() > 0 || ACHMobpatch.getInactionTime() >0);
+		boolean inaction = this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch && (ACHMobpatch.isBlocking() || ACHMobpatch.getInactionTime() >0);
 		if (this.mobpatch.getTarget() != null) {
 			EntityState state = this.mobpatch.getEntityState();
 			this.combatBehaviors.tick();

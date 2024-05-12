@@ -19,7 +19,7 @@ public class GuardGoal<T extends AdvancedCustomHumanoidMobPatch<?>> extends Goal
     }
 
     public boolean canUse() {
-        return this.checkTargetValid() && this.mobpatch.getBlockTick() > 0;
+        return this.checkTargetValid() && this.mobpatch.isBlocking();
     }
     public boolean canContinueToUse() {
         return this.canUse() && !this.targetInaction();
@@ -28,14 +28,12 @@ public class GuardGoal<T extends AdvancedCustomHumanoidMobPatch<?>> extends Goal
     public void start() {
         super.start();
         this.targetInactiontime = -1;
-        mobpatch.setBlocking(true);
         this.mobpatch.resetActionTick();
     }
 
     public void stop() {
         super.stop();
         this.targetInactiontime = -1;
-        mobpatch.setBlockTick(0);
         mobpatch.setBlocking(false);
         mobpatch.getAnimator().resetLivingAnimations();
     }
@@ -62,27 +60,23 @@ public class GuardGoal<T extends AdvancedCustomHumanoidMobPatch<?>> extends Goal
         if (target == null){
             return true;
         } else {
-            return targetInactiontime > this.mobpatch.getGuardCancelTime();
+            return targetInactiontime > this.mobpatch.getBlockTick();
         }
     }
 
     public void tick() {
         LivingEntity target = this.mobpatch.getTarget();
-        int blocktick = mobpatch.getBlockTick();
         if (target != null) {
             LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
             if (targetPatch != null){
-                if(targetPatch.getEntityState().getLevel() > 0 && this.withinDistance()) {
+                int phase = targetPatch.getEntityState().getLevel();
+                if(this.withinDistance() && phase > 0 && phase < 3) {
                     this.targetInactiontime = 0;
-                } else if (this.mobpatch.canBlockProjectile() && target.isUsingItem() && target.getUseItem().getItem() instanceof ProjectileWeaponItem) {
+                } else if (this.mobpatch.canBlockProjectile() && target.getUseItem().getItem() instanceof ProjectileWeaponItem && target.isUsingItem()) {
                     this.targetInactiontime = 0;
                 } else {
                     ++this.targetInactiontime;
                 }
-            }
-
-            if(targetInactiontime > 0 && blocktick > 0){
-                this.mobpatch.setBlockTick(blocktick - 1);
             }
         }
     }
