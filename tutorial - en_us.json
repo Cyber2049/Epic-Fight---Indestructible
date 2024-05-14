@@ -22,7 +22,7 @@
 		"stamina_regan_multiply": 1.0, 	 //optional, The recovery rate of stamina, default: 1
 		"stamina_regan_delay": 30,  	 //optional, delay time for stamina recovery after any action, default: 30(tick)
 		"has_stun_reduction": true, 	 //optional, mechanism of stun attenuation provided by epicfight. when entity stun continuously, stun effect will weaken. default: true
-		"max_stun_shield": 0, 		 //optional, The maximum value of the stun shield which will be offset by the impact first before the monster is stunned，default: false
+		"max_stun_shield": 0, 		 //optional, The maximum value of the stun shield which will be offset by the impact first before the entity is stunned，default: false
 		"stun_shield_regan_multiply": 1, //optional, The recovery rate of the stun shield that is only effective when the max stun shield is greater than 0. The actual recovery rate is (3% * rate) per second, default: 1
 		"stun_shield_regan_delay": 30, 	 //optional, delay time for stun shield recovery after it's exhausted. Only effective when max stun shield is greater than 0， default: 30
 		"stamina_lose_multiply": 0 	 //optional, The rate of stamina damage (impact * rate) for enttity when it's stunned. default: 0 means this mechanism is not allowed.
