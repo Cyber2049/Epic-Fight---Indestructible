@@ -64,7 +64,8 @@
 		"short": "epicfight:biped/combat/hit_short",
 		"long": "epicfight:biped/combat/hit_long",
 		"knockdown": "epicfight:biped/combat/knockdown",
-		"fall": "epicfight:biped/living/landing"
+		"fall": "epicfight:biped/living/landing",
+		"neutralize": "epicfight:biped/skill/guard_break1"
 	},
 	"stun_command_list":[ 										//optional， List of commands that will be executed when it's stunned by current stun type.
 		{"command":"effect give @s epicfight:stun_immunity 6000 5", "stun_type": "short"}
@@ -136,6 +137,8 @@
 		}
 	]
 }
+
+//just make sure you have neutralize aniamtion in "stun_animations". Otherwise entity won't play any neutralize animation when it's neutralize.
 
 //Extra predicate
 // "guard_break":  {"predicate":"guard_break", "invert": false}					detect whether the target is neutralize. set "invert" to invert the result.
