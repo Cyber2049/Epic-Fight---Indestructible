@@ -89,7 +89,7 @@
 							"counter_chance": 0.3, 			//optional，chance of counter, default: 0.3
 							"counter_speed": 1,			//optional，counter speed, only effective when counter animation is an attack animation, default: 1
 							"cancel_after_counter":true,		//optional，whether to cancel this guard behavior after counter, default: true
-							"set_phase": 1 	    			//optional, custom phase, which it will transition to, is mainly used for predicate of behavior.
+							"set_phase": 1 	    			//optional, custom phase, which it will transition to. This is mainly used for predicate of behavior.
 						}
 					]
 				},
@@ -112,7 +112,7 @@
 							"hit_command_list": [									//optional, a list of command executed when it hit someone.
 								{"command":"give @s minecraft:stick", "execute_at_target":true}
 							],
-							"set_phase": 1, 	    								//optional, custom phase, which it will transition to, is mainly used for predicate of behavior.
+							"set_phase": 1, 	    								//optional, custom phase, which it will transition to. This is mainly used for predicate of behavior.
 							"damage_modifier": {	    								//optional, damage adjustment, only effective when current animation is an attack animation
 								"damage": 1, 	    								//damage rate, orignal damage * rate, default: 1
 								"impact": 1, 	   								//impact rate, orignal impat * rate, default: 1
@@ -128,7 +128,7 @@
 							"inaction_time": 300,	   //optional, time of not taking next behavior. default: "wander" time.
 							"x_axis": 1,		   //optional, vector relative to its target on the x-axis, from -1 to 1, clockwise around the target when greater than 0, otherwise counterclockwise
 							"z_axis": -1,		   //optional, vector relative to its target on the z-axis, from -1 to 1, forward when greater than 0, backward when reverse
-							"set_phase": 1 	    	   //optional, custom phase, which it will transition to, is mainly used for predicate of behavior.
+							"set_phase": 1 	    	   //optional, custom phase, which it will transition to. This is mainly used for predicate of behavior.
 						}
 					]
 				}
