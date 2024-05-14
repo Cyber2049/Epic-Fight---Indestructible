@@ -62,7 +62,8 @@
 		"short": "epicfight:biped/combat/hit_short",
 		"long": "epicfight:biped/combat/hit_long",
 		"knockdown": "epicfight:biped/combat/knockdown",
-		"fall": "epicfight:biped/living/landing"
+		"fall": "epicfight:biped/living/landing",
+		"neutralize": "epicfight:biped/skill/guard_break1"
 	},
 	"stun_command_list":[ 																		//非必须， 生物硬直时会执行的指令列表
 		{"command":"effect give @s epicfight:stun_immunity 6000 5", "stun_type": "short"}		//前置为指令，后者为硬直类型 ，具体类型种类同stun_animations
@@ -132,6 +133,7 @@
 		}
 	]
 }
+//确保你在"stun_animations"里面写了，破防的动画"neutralize",否则怪物破防的时候并没有任何反馈
 
 //本mod也提供了部分新的行为检测条件
 // "guard_break":  // {"predicate":"guard_break", "invert": false} 检测目标是否处于破防状态，当invert为true时，为检测目标不处于破防状态
