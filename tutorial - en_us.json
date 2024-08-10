@@ -12,6 +12,9 @@
 	"isHumanoid": true,
 	"faction": "undead",
 	"advanced": true, 			//Version before xx.0.7 is mandatory, version after xx.5.3+ just ensures that your datapacket's path is correct
+	"boss_bar": false,                      //optional, display a customizable boss bar
+	"custom_texture": "indestructible:textures/gui/boss_bar.png", //optional, if "boss_bar" is true, resource loaction of boss bar's texture. default:"indestructible:textures/gui/boss_bar.png"
+	"custom_name": "xxx.xxx.xxx",           //option, title of boss bar, should use lang key. Use entity's name as default.
 	"attributes": {
 		"impact": 2.5,
 		"armor_negation": 5.0,
@@ -26,6 +29,8 @@
 		"stun_shield_regan_multiply": 1, //optional, The recovery rate of the stun shield that is only effective when the max stun shield is greater than 0. The actual recovery rate is (3% * rate) per second, default: 1
 		"stun_shield_regan_delay": 30, 	 //optional, delay time for stun shield recovery after it's exhausted. Only effective when max stun shield is greater than 0， default: 30
 		"stamina_lose_multiply": 0 	 //optional, The rate of stamina damage (impact * rate) for enttity when it's stunned. default: 0 means this mechanism is not allowed.
+		"guard_radius": 3,		 //optional , if target is out of this distance, mob will considering cancel its guard motion. default: 3.
+		"attack_radius": 1.5		 //optional, mob will stop chasing target within this distance. defalut: 1.5.
 	},
 	"default_livingmotions": {
 		"idle": "epicfight:biped/living/idle",
@@ -57,7 +62,9 @@
 			"style":"common",
 			"guard": "indestructible:guard/guard_longsword",   	//mandatory, current animation for guard，supported animations can be found in the assets file of this mod which are named starting with guard
 			"stamina_cost_multiply": 1, 	     		     	//optional, The multiplier of stamina consumption after blocking any damage, default: 1
-			"can_block_projectile" : false     	 	     	//optional， whether can defend against projectiles, default: false
+			"can_block_projectile" : false,     	 	     	//optional， whether can defend against projectiles, default: false
+			"parry_cost_multiply": 0.5,				//optional, The multiplier of stamina consumption after parrying any damage, default: 0.5
+			"parry_animation":[]					//optional, list of parry animations.
 		}
 	],
 	"stun_animations": {
@@ -68,7 +75,7 @@
 		"neutralize": "epicfight:biped/skill/guard_break1"
 	},
 	"stun_command_list":[ 										//optional， List of commands that will be executed when it's stunned by current stun type.
-		{"command":"effect give @s epicfight:stun_immunity 6000 5", "stun_type": "short"}
+		{"command":"effect give @s epicfight:stun_immunity 6000 5", "stun_type": "short", "execute_at_target":true}
 	],
 	"combat_behavior": [
 		{
@@ -90,7 +97,17 @@
 							"counter_chance": 0.3, 			//optional，chance of counter, default: 0.3
 							"counter_speed": 1,			//optional，counter speed, only effective when counter animation is an attack animation, default: 1
 							"cancel_after_counter":true,		//optional，whether to cancel this guard behavior after counter, default: true
-							"set_phase": 1 	    			//optional, custom phase, which it will transition to. This is mainly used for predicate of behavior.
+							"set_phase": 1, 	    		//optional, custom phase, which it will transition to. This is mainly used for predicate of behavior.
+							"parry": false,				//optional, use parry instead of normal block. default: false.
+							"parry_time": 0,			//optional, the maximum number of possible parrys. default: infinite.
+							"stun_immunity_time": 30,		//optional, stun immunity effect after parrying or counterattack.
+							"specific_guard_motion":{		//optional, specify guard motion in this behavior. default: null
+								"guard": "indestructible:guard/guard_longsword",   	//mandatory, current animation for guard，supported animations can be found in the assets file of this mod which are named starting with guard
+								"stamina_cost_multiply": 1, 	     		     	//optional, The multiplier of stamina consumption after blocking any damage, default: 1
+								"can_block_projectile" : false,     	 	     	//optional， whether can defend against projectiles, default: false
+								"parry_cost_multiply": 0.5,				//optional, The multiplier of stamina consumption after parrying any damage, default: 0.5
+								"parry_animation":[]					//optional, list of parry animations.
+							}
 						}
 					]
 				},
