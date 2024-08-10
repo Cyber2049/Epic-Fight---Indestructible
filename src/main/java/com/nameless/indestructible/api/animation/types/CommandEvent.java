@@ -10,9 +10,9 @@ import yesman.epicfight.world.damagesource.StunType;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class AnimationEvent {
+public class CommandEvent {
 	private final Consumer<LivingEntityPatch<?>> event;
-	private AnimationEvent(Consumer<LivingEntityPatch<?>> event) {
+	private CommandEvent(Consumer<LivingEntityPatch<?>> event) {
 		this.event = event;
 	}
 
@@ -22,11 +22,7 @@ public class AnimationEvent {
 		}
 	}
 
-	public static AnimationEvent create(Consumer<LivingEntityPatch<?>> event) {
-		return new AnimationEvent(event);
-	}
-
-	public static class TimeStampedEvent extends AnimationEvent implements Comparable<TimeStampedEvent> {
+	public static class TimeStampedEvent extends CommandEvent implements Comparable<TimeStampedEvent> {
 		private final float time;
 
 		private TimeStampedEvent(float time, Consumer<LivingEntityPatch<?>> event) {
@@ -48,10 +44,6 @@ public class AnimationEvent {
 				return this.time > event.time ? 1 : -1;
 			}
 		}
-
-		public static TimeStampedEvent create(float time, Consumer<LivingEntityPatch<?>> event) {
-			return new TimeStampedEvent(time, event);
-		}
 		public static TimeStampedEvent CreateTimeCommandEvent(float time, String command, boolean isTarget) {
 			Consumer<LivingEntityPatch<?>> event = (entitypatch) -> {
 				Level server = entitypatch.getOriginal().level;
@@ -63,51 +55,15 @@ public class AnimationEvent {
 					server.getServer().getCommands().performCommand(css,command);
 				}
 			};
-			return create(time, event);
-		}
-	}
-
-
-	public static class ConditionalEvent extends AnimationEvent{
-		private final int condition;
-
-		private ConditionalEvent(Consumer<LivingEntityPatch<?>> event, int condition){
-			super(event);
-			this.condition = condition;
-		}
-
-		public static ConditionalEvent create(Consumer<LivingEntityPatch<?>> event, int condition) {
-			return new ConditionalEvent(event, condition);
-		}
-
-		public static ConditionalEvent CreateStunCommandEvent(String command, StunType stunType) {
-			Consumer<LivingEntityPatch<?>> event = (entitypatch) -> {
-				Level server = entitypatch.getOriginal().level;
-				CommandSourceStack css = entitypatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
-				if(server.getServer() != null && entitypatch.getOriginal() != null){
-					server.getServer().getCommands().performCommand(css,command);
-				}
-			};
-			return create(event, stunType.ordinal());
-		}
-
-		public void testAndExecute(LivingEntityPatch<?> entitypatch, int condition) {
-			if(this.condition == condition) {
-				super.testAndExecute(entitypatch);
-			}
+			return new TimeStampedEvent(time, event);
 		}
 	}
 
 	public static class HitEvent {
-		private final BiConsumer<LivingEntityPatch<?>, Entity> event;
+		protected final BiConsumer<LivingEntityPatch<?>, Entity> event;
 		private HitEvent(BiConsumer<LivingEntityPatch<?>, Entity> event){
 			this.event = event;
 		}
-
-		public static HitEvent create(BiConsumer<LivingEntityPatch<?>, Entity> event) {
-			return new HitEvent(event);
-		}
-
 		public static HitEvent CreateHitCommandEvent(String command, boolean isTarget) {
 			BiConsumer<LivingEntityPatch<?>, Entity> event = (entitypatch, target) -> {
 				Level server = entitypatch.getOriginal().level;
@@ -119,12 +75,40 @@ public class AnimationEvent {
 					server.getServer().getCommands().performCommand(css,command);
 				}
 			};
-			return create(event);
+			return new HitEvent(event);
 		}
 
 		public void testAndExecute(LivingEntityPatch<?> entitypatch, Entity target) {
 			if(!entitypatch.isLogicalClient()) {
 				this.event.accept(entitypatch,target);
+			}
+		}
+	}
+
+	public static class StunEvent extends HitEvent{
+		private final int condition;
+		private StunEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, int condition){
+			super(event);
+			this.condition = condition;
+		}
+		public static StunEvent CreateStunCommandEvent(String command, boolean isTarget, StunType stunType) {
+			BiConsumer<LivingEntityPatch<?>, Entity> event = (entitypatch, target) -> {
+				Level server = entitypatch.getOriginal().level;
+				CommandSourceStack css = entitypatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
+				if (isTarget && target instanceof LivingEntity) {
+					css = css.withEntity(target);
+				}
+				if(server.getServer() != null && entitypatch.getOriginal() != null){
+					server.getServer().getCommands().performCommand(css,command);
+				}
+			};
+
+			return  new StunEvent(event, stunType.ordinal());
+		}
+
+		public void testAndExecute(LivingEntityPatch<?> entitypatch, Entity target, int condition) {
+			if(!entitypatch.isLogicalClient() && this.condition == condition) {
+				this.event.accept(entitypatch, target);
 			}
 		}
 	}

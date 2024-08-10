@@ -46,13 +46,15 @@ public class StatusIndicator extends EntityIndicator {
             } else if (playerIn.isCreative() || playerIn.isSpectator()) {
                 return false;
             }
+        } else if (entitypatch instanceof AdvancedCustomHumanoidMobPatch<?> AHPatch && AHPatch.hasBossBar){
+            return false;
         }
 
         if (option == ClientConfig.HealthBarShowOptions.TARGET) {
             return playerpatch.getTarget() == entityIn;
         }
 
-        return (!entityIn.getActiveEffects().isEmpty() || !(entityIn.getHealth() >= entityIn.getMaxHealth())) && entityIn.deathTime < 19;
+        return (!entityIn.getActiveEffects().isEmpty() || entityIn.getHealth() < entityIn.getMaxHealth() || (entitypatch instanceof AdvancedCustomHumanoidMobPatch<?> AHPatch && AHPatch.getStamina() < AHPatch.getMaxStamina())) && entityIn.deathTime < 19;
     }
 
     @Override
@@ -88,7 +90,6 @@ public class StatusIndicator extends EntityIndicator {
                     float y = startY + -0.3F * i;
 
                     VertexConsumer vertexBuilder1 = bufferIn.getBuffer(EpicFightRenderTypes.entityIndicator(rl));
-
                     this.drawTexturedModalRect2DPlane(mvMatrix, vertexBuilder1, x, y, x + 0.3F, y + 0.3F, 0, 0, 256, 256);
                     if (!iter.hasNext()) {
                         break;
@@ -96,7 +97,6 @@ public class StatusIndicator extends EntityIndicator {
                 }
             }
         }
-
         VertexConsumer vertexBuilder = bufferIn.getBuffer(EpicFightRenderTypes.entityIndicator(STATUS_BAR));
 
         float ratio = Mth.clamp(entityIn.getHealth() / entityIn.getMaxHealth(), 0.0F, 1.0F);

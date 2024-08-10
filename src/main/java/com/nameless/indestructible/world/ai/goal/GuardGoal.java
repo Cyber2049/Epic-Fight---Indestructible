@@ -34,6 +34,7 @@ public class GuardGoal<T extends AdvancedCustomHumanoidMobPatch<?>> extends Goal
     public void stop() {
         super.stop();
         this.targetInactiontime = -1;
+        this.mobpatch.setParryCounter(0);
         mobpatch.setBlocking(false);
         mobpatch.getAnimator().resetLivingAnimations();
     }

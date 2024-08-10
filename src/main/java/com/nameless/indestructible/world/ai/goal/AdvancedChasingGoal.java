@@ -17,6 +17,11 @@ public class AdvancedChasingGoal<T extends AdvancedCustomHumanoidMobPatch<?>> ex
 	}
 
 	@Override
+	public boolean canUse(){
+		return mobpatch.getStrafingTime() > 0 || super.canUse();
+	}
+
+	@Override
 	public void tick() {
 		if(this.mobpatch.getInactionTime() > 0){
 			mobpatch.setInactionTime(mobpatch.getInactionTime()-1);
@@ -49,11 +54,14 @@ public class AdvancedChasingGoal<T extends AdvancedCustomHumanoidMobPatch<?>> ex
 
 	public void stop() {
 		super.stop();
-		mobpatch.setStrafingTime(0);
 	}
 	
 	@Override
 	protected void checkAndPerformAttack(LivingEntity target, double p_25558_) {
 		
+	}
+	@Override
+	protected double getAttackReachSqr(LivingEntity p_25556_) {
+		return this.attackRadiusSqr;
 	}
 }

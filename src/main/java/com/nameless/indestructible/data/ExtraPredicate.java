@@ -1,4 +1,4 @@
-package com.nameless.indestructible.utils;
+package com.nameless.indestructible.data;
 
 import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
 import net.minecraft.world.entity.LivingEntity;

@@ -13,6 +13,7 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.world.entity.Entity;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.main.EpicFightMod;
+import yesman.epicfight.network.server.SPPlayAnimation;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
@@ -33,12 +34,14 @@ public class AHPatchPlayAnimationCommand implements Command<CommandSourceStack> 
         StaticAnimation animation = EpicFightMod.getInstance().animationManager.findAnimationByPath(StringArgumentType.getString(context, "animation"));
         float convert_time = FloatArgumentType.getFloat(context, "convert_time");
         float speed = FloatArgumentType.getFloat(context, "speed");
-        LivingEntityPatch<?> mobPatch = EpicFightCapabilities.getEntityPatch(living, LivingEntityPatch.class);
-        if(mobPatch != null && animation != null){
-            if(mobPatch instanceof AdvancedCustomHumanoidMobPatch<?> AHPatch){
+        LivingEntityPatch<?> livingEntityPatch = EpicFightCapabilities.getEntityPatch(living, LivingEntityPatch.class);
+        if(livingEntityPatch != null && animation != null){
+            if(livingEntityPatch instanceof AdvancedCustomHumanoidMobPatch<?> AHPatch){
+                AHPatch.setBlocking(false);
                 AHPatch.setAttackSpeed(speed);
-            }
-            mobPatch.playAnimationSynchronized(animation, convert_time);
+                AHPatch.resetMotion();
+                AHPatch.playAnimationSynchronized(animation, convert_time, SPPlayAnimation::new);
+            } else livingEntityPatch.playAnimationSynchronized(animation, convert_time, SPPlayAnimation::new);
         }
         return 1;
     }

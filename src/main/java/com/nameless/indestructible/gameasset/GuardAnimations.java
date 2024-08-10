@@ -24,6 +24,7 @@ public class GuardAnimations {
     public static StaticAnimation MOB_LONGSWORD_GUARD;
     public static StaticAnimation MOB_GREATSWORD_GUARD;
     public static StaticAnimation MOB_KATANA_GUARD;
+    public static StaticAnimation MOB_KATANA_GUARD1;
     public static StaticAnimation MOB_SPEAR_GUARD;
     public static StaticAnimation MOB_DUAL_SWORD_GUARD;
     public static StaticAnimation MOB_COUNTER_ATTACK;
@@ -46,8 +47,10 @@ public class GuardAnimations {
                 "epicfight:biped/skill/guard_longsword_hit", biped);
         MOB_GREATSWORD_GUARD = new CustomGuardAnimation("guard/guard_greatsword",
                 "epicfight:biped/skill/guard_greatsword_hit", biped);
-        MOB_KATANA_GUARD = new CustomGuardAnimation("guard/guard_katana",
-                "epicfight:biped/skill/guard_katana_hit", biped);
+        MOB_KATANA_GUARD = new CustomGuardAnimation("guard/guard_uchigatana",
+                "epicfight:biped/skill/guard_sword_hit", biped);
+        MOB_KATANA_GUARD1 = new CustomGuardAnimation("guard/guard_katana",
+                "epicfight:biped/skill/guard_sword_hit", biped);
         MOB_SPEAR_GUARD = new CustomGuardAnimation("guard/guard_spear",
                 "epicfight:biped/skill/guard_spear_hit", biped);
         MOB_DUAL_SWORD_GUARD = new CustomGuardAnimation("guard/guard_dualsword",

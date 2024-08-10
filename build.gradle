@@ -19,7 +19,7 @@ apply plugin: 'org.spongepowered.mixin'
 
 
 
-version = '18.5.9'
+version = '18.5.11'
 group = 'com.nameless.indestructible' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'indestructible'
 
