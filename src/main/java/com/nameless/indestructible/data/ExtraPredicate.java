@@ -4,11 +4,14 @@ import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPat
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
-import yesman.epicfight.gameasset.Animations;
+import yesman.epicfight.api.animation.types.LongHitAnimation;
+import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
+
+import static com.nameless.indestructible.main.Indestructible.NEUTRALIZE_ANIMATION_LIST;
 
 public class ExtraPredicate {
     public static class TargetIsGuardBreak<T extends MobPatch<?>> extends CombatBehaviors.BehaviorPredicate<T> {
@@ -20,7 +23,7 @@ public class ExtraPredicate {
 
             LivingEntityPatch<?> tartgetpatch = EpicFightCapabilities.getEntityPatch(mobpatch.getTarget(), LivingEntityPatch.class);
             if(tartgetpatch == null) return false;
-            boolean targetisguardbreak = tartgetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.BIPED_COMMON_NEUTRALIZED || tartgetpatch.getAnimator().getPlayerFor(null).getAnimation() == Animations.GREATSWORD_GUARD_BREAK;
+            boolean targetisguardbreak = tartgetpatch.getEntityState().hurtLevel() > 1 && tartgetpatch.getAnimator().getPlayerFor(null).getAnimation() instanceof LongHitAnimation animation && NEUTRALIZE_ANIMATION_LIST.contains((StaticAnimation) animation);
             if (!this.invert) {
                 return targetisguardbreak;
             } else {

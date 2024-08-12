@@ -1,10 +1,13 @@
 package com.nameless.indestructible.client;
 
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@OnlyIn(Dist.CLIENT)
 public class UIConfig {
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static final ForgeConfigSpec.ConfigValue<Boolean> REPLACE_UI;

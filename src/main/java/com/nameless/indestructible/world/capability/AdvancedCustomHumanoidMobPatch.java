@@ -17,6 +17,7 @@ import com.nameless.indestructible.world.ai.goal.GuardGoal;
 import com.nameless.indestructible.world.ai.task.AdvancedChasingBehavior;
 import com.nameless.indestructible.world.ai.task.AdvancedCombatBehavior;
 import com.nameless.indestructible.world.ai.task.GuardBehavior;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -51,7 +52,6 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import yesman.epicfight.api.animation.LivingMotion;
 import yesman.epicfight.api.animation.LivingMotions;
-import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.client.animation.ClientAnimator;
 import yesman.epicfight.api.client.animation.Layer;
@@ -62,6 +62,7 @@ import yesman.epicfight.gameasset.EpicFightSounds;
 import yesman.epicfight.main.EpicFightMod;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPChangeLivingMotion;
+import yesman.epicfight.network.server.SPSpawnData;
 import yesman.epicfight.particle.EpicFightParticles;
 import yesman.epicfight.particle.HitParticleType;
 import yesman.epicfight.world.capabilities.entitypatch.Faction;
@@ -77,12 +78,10 @@ import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
 import yesman.epicfight.world.entity.ai.brain.BrainRecomposer;
 import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import javax.annotation.Nullable;
+import java.util.*;
 
-public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends HumanoidMobPatch<T> {
+public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends HumanoidMobPatch<T>  {
 
     private final AdvancedCustomHumanoidMobPatchProvider provider;
     private final Map<WeaponCategory, Map<Style,GuardMotion>> weaponGuardMotions;
@@ -132,7 +131,8 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     private AdvancedBossInfo bossInfo;
     public  boolean hasBossBar;
     private Component customName;
-    private final ResourceLocation bossBar;
+    private ResourceLocation bossBar;
+    private boolean neutralized;
 
     public AdvancedCustomHumanoidMobPatch(Faction faction, AdvancedCustomHumanoidMobPatchProvider provider) {
         super(faction);
@@ -149,7 +149,6 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         this.guardRadius = this.provider.getGuardRadius();
         this.attackRadius = this.provider.getAttackRadius();
         this.hasBossBar = this.provider.hasBossBar();
-        this.bossBar = this.provider.getBossBar() == null ? BOSS_BAR : this.provider.getBossBar();
     }
 
     @Override
@@ -160,8 +159,6 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         entityIn.getEntityData().define(IS_BLOCKING, false);
         if(this.hasBossBar) {
             this.bossInfo = new AdvancedBossInfo(this);
-            BossBarGUi.BossBarEntities.put(bossInfo.getId(), this);
-            this.customName = this.provider.getName() == null ? this.getOriginal().getType().getDescription() : new TranslatableComponent(this.provider.getName());
         }
     }
 
@@ -187,6 +184,8 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
             this.initStunEvent(provider);
             this.resetMotion();
         }
+        this.bossBar = this.provider.getBossBar() == null ? BOSS_BAR : this.provider.getBossBar();
+        this.customName = this.provider.getName() == null ? this.getOriginal().getType().getDescription() : new TranslatableComponent(this.provider.getName());
     }
 
     private Map<Attribute, AttributeInstance> putEpicFightAttributes(Map<Attribute, AttributeInstance> originalMap) {
@@ -259,6 +258,10 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
             if(stunShield > maxStunShield){
                 this.setStunShield(this.getMaxStunShield());
             }
+        }
+
+        if(neutralized && this.getEntityState().hurtLevel() < 2){
+                neutralized = false;
         }
     }
 
@@ -363,7 +366,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public float getCounterSpeed(){
         return this.counterMotion.speed;
     }
-    public void specificGuardMotion(GuardMotion specific_guard_motion){
+    public void specificGuardMotion(@Nullable GuardMotion specific_guard_motion){
         this.specificGuardMotion = specific_guard_motion;
     }
     public void resetActionTick() {
@@ -710,6 +713,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                     this.setBlocking(false);
                     this.applyStun(StunType.NEUTRALIZE,2.0F);
                     this.playSound(EpicFightSounds.NEUTRALIZE_MOBS, -0.05F, 0.1F);
+                    EpicFightParticles.AIR_BURST.get().spawnParticleWithArgument((ServerLevel) this.getOriginal().level,this.getOriginal(), damageSource.getDirectEntity());
                     this.setStamina(this.getMaxStamina());
                     return new AttackResult(AttackResult.ResultType.SUCCESS, amount/2);
                 }
@@ -759,16 +763,16 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
     @Override
     public boolean applyStun(StunType stunType, float time){
-        DynamicAnimation animation = this.getAnimator().getPlayerFor(null).getAnimation();
-        if(animation == Animations.BIPED_COMMON_NEUTRALIZED || animation == Animations.GREATSWORD_GUARD_BREAK) {
+        if(this.neutralized) {
             stunType = stunType == StunType.KNOCKDOWN ? stunType : StunType.NONE;
         } else if (this.staminaLoseMultiply > 0 && this.lastGetImpact > 0 && this.getStunShield() <= 0){
             this.setStamina(this.getStamina() - this.lastGetImpact * this.staminaLoseMultiply);
-        }
-
-        if (this.getStamina() < this.lastGetImpact) {
-            stunType = StunType.NEUTRALIZE;
-            this.setStamina(this.getMaxStamina());
+            if (this.getStamina() <  this.lastGetImpact * this.staminaLoseMultiply) {
+                stunType = StunType.NEUTRALIZE;
+                this.playSound(EpicFightSounds.NEUTRALIZE_MOBS, -0.05F, 0.1F);
+                if(this.lastAttacker != null)EpicFightParticles.AIR_BURST.get().spawnParticleWithArgument((ServerLevel) this.getOriginal().level,this.getOriginal(), lastAttacker);
+                this.setStamina(this.getMaxStamina());
+            }
         }
 
         if(!this.stunEvents.isEmpty()){
@@ -779,10 +783,15 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                  }
             }
         }
+
         this.setAttackSpeed(1F);
         this.resetActionTick();
         this.resetMotion();
-        return super.applyStun(stunType, time);
+        boolean isStunned = super.applyStun(stunType, time);
+        if(stunType == StunType.NEUTRALIZE){
+            this.neutralized = true;
+        }
+        return isStunned;
     }
 
     @Override
@@ -800,8 +809,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     }
     @Override
     public void knockBackEntity(Vec3 sourceLocation, float power) {
-        DynamicAnimation animation = this.getAnimator().getPlayerFor(null).getAnimation();
-        if(animation == Animations.BIPED_COMMON_NEUTRALIZED || animation == Animations.GREATSWORD_GUARD_BREAK) {
+        if(this.neutralized) {
             return;
         }
         super.knockBackEntity(sourceLocation,power);
@@ -814,11 +822,27 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     @Override
     public void onStartTracking(ServerPlayer trackingPlayer) {
         super.onStartTracking(trackingPlayer);
-        if(this.hasBossBar) this.bossInfo.addPlayer(trackingPlayer);
+        if(this.hasBossBar) {
+            this.bossInfo.addPlayer(trackingPlayer);
+            if(!this.isLogicalClient()) {
+                SPSpawnData packet = new SPSpawnData(this.original.getId());
+                packet.getBuffer().writeLong(this.bossInfo.getId().getMostSignificantBits());
+                packet.getBuffer().writeLong(this.bossInfo.getId().getLeastSignificantBits());
+                EpicFightNetworkManager.sendToPlayer(packet, trackingPlayer);
+            }
+        }
     }
 
     public void onStopTracking(ServerPlayer trackingPlayer) {
         if(this.hasBossBar) this.bossInfo.removePlayer(trackingPlayer);
+    }
+
+    @Override
+    public void processSpawnData(ByteBuf buf) {
+            long mostSignificant = buf.readLong();
+            long leastSignificant = buf.readLong();
+            UUID uuid = new UUID(mostSignificant, leastSignificant);
+            BossBarGUi.BossBarEntities.put(uuid, this);
     }
 
     public record CustomAnimationMotion(StaticAnimation animation, float convertTime, float speed, float stamina) { }

@@ -14,6 +14,8 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import yesman.epicfight.client.gui.EntityIndicator;
 import yesman.epicfight.client.renderer.EpicFightRenderTypes;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
@@ -26,6 +28,8 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 
+
+@OnlyIn(Dist.CLIENT)
 public class StatusIndicator extends EntityIndicator {
     public static final ResourceLocation STATUS_BAR = new ResourceLocation(Indestructible.MOD_ID, "textures/gui/bar.png");
 

@@ -64,6 +64,7 @@ public class BossBarGUi {
             GuiComponent.blit(barPoseStack, x, y, 0, 21, health, 19,255,255);
             GuiComponent.blit(barPoseStack, x, y + 18, 0, 42, 256, 10,255,255);
             GuiComponent.blit(barPoseStack, x, y + 18, 0, 55, stamina, 10,255,255);
+            GuiComponent.blit(barPoseStack, x, y, 0, 68, 256, 29,255,255);
             barPoseStack.popPose();
             Minecraft.getInstance().font.drawShadow(event.getMatrixStack(), achPatch.getCustomName(), i1, (float) (y - 9) , 16777215);
             event.setIncrement(44);

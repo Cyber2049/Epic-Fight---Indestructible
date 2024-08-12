@@ -163,6 +163,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         extract.put("default_livingmotions", original.get("default_livingmotions"));
         extract.put("attributes", original.get("attributes"));
         if(original.contains("boss_bar")){
+            extract.put("boss_bar", original.get("boss_bar"));
             if(original.contains("custom_name"))extract.put("custom_name", original.get("custom_name"));
             if(original.contains("custom_texture"))extract.put("custom_texture", original.get("custom_texture"));
         }
@@ -463,10 +464,11 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         return new GuardMotion(guard, canBlockProjectile, guard_cost, parry_cost, parry_animations);
     }
 
-    public static <T extends MobPatch<?>> Consumer<T> setGuardMotion(int guardTime, boolean parry, int parry_time, int stun_immunity_time, CounterMotion counter_motion, boolean cancel, @Nullable GuardMotion guard_motion, int phase) {
+    public static <T extends MobPatch<?>> Consumer<T> setGuardMotion(int guardTime, boolean parry, int parry_time, int stun_immunity_time, CounterMotion counter_motion,
+                                                                     boolean cancel, @Nullable GuardMotion guard_motion, int phase) {
         return (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
-                if(guard_motion != null) advancedCustomHumanoidMobPatch.specificGuardMotion(guard_motion);
+                advancedCustomHumanoidMobPatch.specificGuardMotion(guard_motion);
                 advancedCustomHumanoidMobPatch.setBlocking(true);
                 advancedCustomHumanoidMobPatch.setBlockTick(guardTime);
                 advancedCustomHumanoidMobPatch.setParry(parry);
