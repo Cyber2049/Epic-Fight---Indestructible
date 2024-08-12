@@ -62,7 +62,8 @@
 		"short": "epicfight:biped/combat/hit_short",
 		"long": "epicfight:biped/combat/hit_long",
 		"knockdown": "epicfight:biped/combat/knockdown",
-		"fall": "epicfight:biped/living/landing"
+		"fall": "epicfight:biped/living/landing",
+		"neutralize": "epicfight:biped/skill/guard_break1"
 	},
 	"stun_command_list":[ 																		//非必须， 生物硬直时会执行的指令列表
 		{"command":"effect give @s epicfight:stun_immunity 6000 5", "stun_type": "short"}		//前置为指令，后者为硬直类型 ，具体类型种类同stun_animations
@@ -81,11 +82,12 @@
 							"conditions": [
 								{"predicate":"within_eye_height"}, {"predicate":"within_distance", "min": 3.0, "max": 5.0}
 							],
-							"guard": 60, 				//必须，具体行为种类，单次防御的时间，非绝对的执行时间，为动态时间（可理解为单次防御可能的最大时间）会根据敌对生物的行为取消
+							"guard": 60, 				//必须，取消防御的反应时间（tick），目标不采取攻击行动到主动取消防御的时间，时间越长意味着防御的策略更谨慎
 							"counter": "epicfight:wither_skeleton/sword_attack1", //非必须, 本次防御可能会采取防御反击动画，不填默认为膝顶
 							"counter_cost": 3, 			//非必须，反击会消耗的耐力，默认为 3
 							"counter_chance": 0.3, 			//非必须，反击的机率，默认为 0.3
-							"counter_speed": 1 			//非必须，反击动画的速度，仅能改变攻击类型动画的速度，默认为 1
+							"counter_speed": 1,			//非必须，反击动画的速度，仅能改变攻击类型动画的速度，默认为 1
+							"cancel_after_counter":true			//非必须，反击后是否主动取消防御状态，不填写默认为开启
 						}
 					]
 				},
@@ -131,6 +133,7 @@
 		}
 	]
 }
+//确保你在"stun_animations"里面写了，破防的动画"neutralize",否则怪物破防的时候并没有任何反馈
 
 //本mod也提供了部分新的行为检测条件
 // "guard_break":  // {"predicate":"guard_break", "invert": false} 检测目标是否处于破防状态，当invert为true时，为检测目标不处于破防状态
