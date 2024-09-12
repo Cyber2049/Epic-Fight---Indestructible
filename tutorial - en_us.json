@@ -135,7 +135,8 @@
 								"damage": 1, 	    								//damage rate, orignal damage * rate, default: 1
 								"impact": 1, 	   								//impact rate, orignal impat * rate, default: 1
 								"armor_negation": 1								//armor negation rate, orignal armor negation * rate, default: 1，Result not greater than 100%
-							}
+							},
+							"end_by_hurt_level": 2 			//optional,  can end entities' combo when they get stunned.1: all types of stun, 2: only long, knockdown, neutralize, 3: never, default: 2
 
 						},
 						{
@@ -146,7 +147,8 @@
 							"inaction_time": 300,	   //optional, time of not taking next behavior. default: "wander" time.
 							"x_axis": 1,		   //optional, vector relative to its target on the x-axis, from -1 to 1, clockwise around the target when greater than 0, otherwise counterclockwise
 							"z_axis": -1,		   //optional, vector relative to its target on the z-axis, from -1 to 1, forward when greater than 0, backward when reverse
-							"set_phase": 1 	    	   //optional, custom phase, which it will transition to. This is mainly used for predicate of behavior.
+							"set_phase": 1, 	    	   //optional, custom phase, which it will transition to. This is mainly used for predicate of behavior.
+							"end_by_hurt_level": 2 			//optional,  can end entities' combo when they get stunned.1: all types of stun, 2: only long, knockdown, neutralize, 3: never, default: 2
 						}
 					]
 				}
