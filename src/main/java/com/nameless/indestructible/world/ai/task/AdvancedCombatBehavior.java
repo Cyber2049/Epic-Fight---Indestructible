@@ -1,6 +1,7 @@
 package com.nameless.indestructible.world.ai.task;
 
 import com.google.common.collect.ImmutableMap;
+import com.nameless.indestructible.mixin.CombatBehaviorsMixin;
 import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -38,16 +39,21 @@ public class AdvancedCombatBehavior<T extends MobPatch<?>> extends Behavior<Mob>
 	
 	@Override
 	protected void tick(ServerLevel worldIn, Mob entityIn, long gameTimeIn) {
-		boolean inaction = this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch && (ACHMobpatch.isBlocking() || ACHMobpatch.getInactionTime() >0);
+		if(!(this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch)) return;
+		boolean inaction = ACHMobpatch.isBlocking() || ACHMobpatch.getInactionTime() >0;
 		if (this.mobpatch.getTarget() != null) {
 			EntityState state = this.mobpatch.getEntityState();
 			this.combatBehaviors.tick();
 			if (this.combatBehaviors.hasActivatedMove()) {
+				if(state.hurt() && state.hurtLevel() >= ACHMobpatch.getHurtResistLevel()){
+					((CombatBehaviorsMixin)this.combatBehaviors).setCurrentBehaviorPointer(-1);
+					return;
+				}
 				if (state.canBasicAttack() && !inaction) {
 					CombatBehaviors.Behavior<T> result = this.combatBehaviors.tryProceed();
 
 					if (result != null) {
-						if(this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch) ACHMobpatch.resetMotion();
+						ACHMobpatch.resetMotion();
 						result.execute(this.mobpatch);
 					}
 				}
@@ -56,7 +62,7 @@ public class AdvancedCombatBehavior<T extends MobPatch<?>> extends Behavior<Mob>
 					CombatBehaviors.Behavior<T> result = this.combatBehaviors.selectRandomBehaviorSeries();
 
 					if (result != null) {
-						if(this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch) ACHMobpatch.resetMotion();
+						ACHMobpatch.resetMotion();
 						result.execute(this.mobpatch);
 					}
 				}

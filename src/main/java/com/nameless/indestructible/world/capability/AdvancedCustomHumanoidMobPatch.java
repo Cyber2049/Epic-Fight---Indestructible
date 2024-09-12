@@ -118,6 +118,8 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     private final List<CommandEvent.StunEvent> stunEvents = Lists.newArrayList();
     //private final List<CommandEvent.HitEvent> blockedEvents = Lists.newArrayList();
     private int phase;
+    private int hurtResistLevel = 2;
+    private boolean neutralized;
     //wandering
     private float strafingForward;
     private float strafingClockwise;
@@ -132,7 +134,6 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public  boolean hasBossBar;
     private Component customName;
     private ResourceLocation bossBar;
-    private boolean neutralized;
 
     public AdvancedCustomHumanoidMobPatch(Faction faction, AdvancedCustomHumanoidMobPatchProvider provider) {
         super(faction);
@@ -383,6 +384,13 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public void setPhase(int phase){
         this.phase = Math.min(Math.max(0, phase), 20);
     }
+    public void setHurtResistLevel(int hurtResistLevel){
+        this.hurtResistLevel = Math.max(hurtResistLevel, 1);
+    }
+    public int getHurtResistLevel(){
+      return this.hurtResistLevel;
+    }
+
     public int getStrafingTime(){return this.strafingTime;}
     public void setStrafingTime(int time){this.strafingTime = time;}
     public float getStrafingForward(){return this.strafingForward;}
@@ -423,7 +431,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
                 if (builder != null) {
                     this.original.goalSelector.addGoal(0, new AdvancedCombatGoal<>(this, builder.build(this)));
-                    this.original.goalSelector.addGoal(0, new GuardGoal<>(this,this.guardRadius));
+                    this.original.goalSelector.addGoal(0, new GuardGoal(this,this.guardRadius));
                     this.original.goalSelector.addGoal(1, new AdvancedChasingGoal<>(this, this.getOriginal(), this.provider.getChasingSpeed(), true,this.attackRadius));
                 }
             }
@@ -633,9 +641,18 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
            result = damageSource.getDirectEntity() != this.getOriginal() ? this.tryProcess(damageSource, amount) : result;
            if(result.resultType.dealtDamage()){
                this.lastAttacker = damageSource.getDirectEntity();
+               if(damageSource instanceof EpicFightDamageSource efDamageSource) {
+                   this.lastGetImpact = efDamageSource.getImpact();
+               } else {
+                   this.lastGetImpact = amount/3;
+               }
            }
         }
         return result;
+    }
+
+    private boolean canBlockSource(DamageSource damageSource){
+        return  !damageSource.isExplosion() && !damageSource.isMagic() && !damageSource.isBypassInvul() && (!damageSource.isProjectile() || this.canBlockProjectile());
     }
 
     private AttackResult tryProcess(DamageSource damageSource, float amount){
@@ -644,7 +661,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
             CustomGuardAnimation animation = this.getGuardAnimation();
             StaticAnimation success = animation.successAnimation != null ? EpicFightMod.getInstance().animationManager.findAnimationByPath(animation.successAnimation) : Animations.SWORD_GUARD_HIT;
             boolean isFront = false;
-            boolean canBlockSource = !damageSource.isExplosion() && !damageSource.isMagic() && !damageSource.isBypassInvul() && (!damageSource.isProjectile() || this.canBlockProjectile());
+            boolean canBlockSource = this.canBlockSource(damageSource);
             Vec3 sourceLocation = damageSource.getSourcePosition();
 
             if (sourceLocation != null) {
@@ -659,9 +676,9 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                 float impact;
                 float knockback;
                 if (damageSource instanceof EpicFightDamageSource efDamageSource) {
-                    impact = amount / 4F * (1F + efDamageSource.getImpact() / 2F);
+                    impact = efDamageSource.getImpact();
                     if(efDamageSource.hasTag(SourceTags.GUARD_PUNCTURE)){
-                        impact = Float.MAX_VALUE;
+                        return new AttackResult(AttackResult.ResultType.SUCCESS, amount);
                     }
                 } else {
                     impact = amount / 3;
@@ -719,12 +736,6 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                 }
             }
         }
-
-        if(damageSource instanceof EpicFightDamageSource efDamageSource) {
-            this.lastGetImpact = efDamageSource.getImpact();
-        } else {
-            this.lastGetImpact = amount/3;
-        }
         return new AttackResult(AttackResult.ResultType.SUCCESS, amount);
     }
 
@@ -779,18 +790,20 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
             if(this.getHitAnimation(stunType) != null){
                 for(CommandEvent.StunEvent event: this.stunEvents) {
                     event.testAndExecute(this, lastAttacker, stunType.ordinal());
-                    if(!this.getOriginal().isAlive() || this.stunEvents.isEmpty() /* stellaris || (stunType.ordinal() == 5 && this.getStamina() > 0) */){break;}
+                    if(!this.getOriginal().isAlive() || this.stunEvents.isEmpty()){break;}
                  }
             }
         }
-
-        this.setAttackSpeed(1F);
-        this.resetActionTick();
-        this.resetMotion();
+        if(stunType != StunType.NONE) {
+            this.setAttackSpeed(1F);
+            this.resetActionTick();
+            this.resetMotion();
+        }
         boolean isStunned = super.applyStun(stunType, time);
         if(stunType == StunType.NEUTRALIZE){
             this.neutralized = true;
         }
+
         return isStunned;
     }
 

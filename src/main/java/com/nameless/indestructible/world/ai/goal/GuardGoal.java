@@ -8,12 +8,12 @@ import net.minecraft.world.item.ProjectileWeaponItem;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
-public class GuardGoal<T extends AdvancedCustomHumanoidMobPatch<?>> extends Goal {
-    private final T mobpatch;
+public class GuardGoal extends Goal {
+    private final AdvancedCustomHumanoidMobPatch<?> mobpatch;
     private final float radiusSqr;
     private int targetInactiontime = -1;
 
-    public GuardGoal(T customHumanoidMobPatch, float radius) {
+    public GuardGoal(AdvancedCustomHumanoidMobPatch<?> customHumanoidMobPatch, float radius) {
         this.mobpatch = customHumanoidMobPatch;
         this.radiusSqr = radius  * radius;
     }

@@ -371,7 +371,8 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                 CombatBehaviors.Behavior.Builder<T> behaviorBuilder = CombatBehaviors.Behavior.builder();
                 CompoundTag behavior = behaviorList.getCompound(j);
                 ListTag conditionList = behavior.getList("conditions", 10);
-
+                int phase = behavior.contains("set_phase") ? behavior.getInt("set_phase") : -1;
+                int hurt_level = behavior.contains("end_by_hurt_level") ? behavior.getInt("end_by_hurt_level") : 2;
                 if(behavior.contains("animation")) {
                     StaticAnimation animation = EpicFightMod.getInstance().animationManager.findAnimationByPath(behavior.getString("animation"));
                     float speed = behavior.contains("play_speed") ? (float) behavior.getDouble("play_speed") : 1F;
@@ -380,9 +381,8 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                     CustomAnimationMotion motion = new CustomAnimationMotion(animation,convertTime,speed,stamina);
                     List<CommandEvent.TimeStampedEvent> timeCommandList = behavior.contains("command_list") ? deserializeTimeCommandList(behavior.getList("command_list", 10)) : null;
                     List<CommandEvent.HitEvent> hitCommandList = behavior.contains("hit_command_list") ? deserializeHitCommandList(behavior.getList("hit_command_list", 10)) : null;
-                    int phase = behavior.contains("set_phase") ? behavior.getInt("set_phase") : -1;
                     DamageSourceModifier modifier = behavior.contains("damage_modifier") ? deserializeDamageModifier(behavior.getCompound("damage_modifier")) : null;
-                    behaviorBuilder.behavior(customAttackAnimation(motion, modifier, timeCommandList, hitCommandList, phase));
+                    behaviorBuilder.behavior(customAttackAnimation(motion, modifier, timeCommandList, hitCommandList, phase, hurt_level));
                 } else if (behavior.contains("guard")){
                     int guardTime = behavior.getInt("guard");
                     StaticAnimation counter = behavior.contains("counter") ? EpicFightMod.getInstance().animationManager.findAnimationByPath(behavior.getString("counter")) : GuardAnimations.MOB_COUNTER_ATTACK;
@@ -395,16 +395,13 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                     CounterMotion counterMotion = new CounterMotion(counter, cost, chance, speed);
                     boolean cancel = !behavior.contains("cancel_after_counter") || behavior.getBoolean("cancel_after_counter");
                     GuardMotion guardMotion = behavior.contains("specific_guard_motion") ? deserializeSpecificGuardMotion(behavior.getCompound("specific_guard_motion")) : null;
-
-                    int phase = behavior.contains("set_phase") ? behavior.getInt("set_phase") : -1;
-                    behaviorBuilder.behavior(setGuardMotion(guardTime, isParry, parry_times, stun_immunity_time, counterMotion, cancel, guardMotion, phase));
+                    behaviorBuilder.behavior(setGuardMotion(guardTime, isParry, parry_times, stun_immunity_time, counterMotion, cancel, guardMotion, phase, hurt_level));
                 } else if (behavior.contains("wander")){
                     int strafingTime = behavior.getInt("wander");
                     int inactionTime = behavior.contains("inaction_time") ?  behavior.getInt("inaction_time") : behavior.getInt("wander");
                     float forward = behavior.contains("z_axis") ? (float) behavior.getDouble("z_axis") : 0F;
                     float clockwise = behavior.contains("x_axis") ? (float) behavior.getDouble("x_axis") : 0F;
-                    int phase = behavior.contains("set_phase") ? behavior.getInt("set_phase") : -1;
-                    behaviorBuilder.behavior(setStrafing(strafingTime, inactionTime, forward, clockwise, phase));
+                    behaviorBuilder.behavior(setStrafing(strafingTime, inactionTime, forward, clockwise, phase, hurt_level));
                 }
 
                 for (int k = 0; k < conditionList.size(); k++) {
@@ -422,10 +419,13 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         return builder;
     }
 
+
+
     private static <T extends MobPatch<?>> Consumer<T> customAttackAnimation(CustomAnimationMotion motion, @Nullable DamageSourceModifier damageSourceModifier,
-                                                                             @Nullable List<CommandEvent.TimeStampedEvent> timeEvents, @Nullable List<CommandEvent.HitEvent> hitEvents, int phase){
+                                                                             @Nullable List<CommandEvent.TimeStampedEvent> timeEvents, @Nullable List<CommandEvent.HitEvent> hitEvents, int phase, int hurtResist){
         return (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
+                advancedCustomHumanoidMobPatch.setHurtResistLevel(hurtResist);
                 advancedCustomHumanoidMobPatch.setAttackSpeed(motion.speed());
                 advancedCustomHumanoidMobPatch.setBlocking(false);
                 if(motion.stamina() != 0F) advancedCustomHumanoidMobPatch.setStamina(advancedCustomHumanoidMobPatch.getStamina() - motion.stamina());
@@ -465,9 +465,10 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
     }
 
     public static <T extends MobPatch<?>> Consumer<T> setGuardMotion(int guardTime, boolean parry, int parry_time, int stun_immunity_time, CounterMotion counter_motion,
-                                                                     boolean cancel, @Nullable GuardMotion guard_motion, int phase) {
+                                                                     boolean cancel, @Nullable GuardMotion guard_motion, int phase, int hurtResist) {
         return (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
+                advancedCustomHumanoidMobPatch.setHurtResistLevel(hurtResist);
                 advancedCustomHumanoidMobPatch.specificGuardMotion(guard_motion);
                 advancedCustomHumanoidMobPatch.setBlocking(true);
                 advancedCustomHumanoidMobPatch.setBlockTick(guardTime);
@@ -476,14 +477,15 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                 advancedCustomHumanoidMobPatch.setStunImmunityTime(stun_immunity_time);
                 advancedCustomHumanoidMobPatch.setCounterMotion(counter_motion);
                 advancedCustomHumanoidMobPatch.cancelBlock(cancel);
-                if(phase >= 0) advancedCustomHumanoidMobPatch.setPhase(phase);
+                if(phase >= 0)advancedCustomHumanoidMobPatch.setPhase(phase);
             }
         };
     }
 
-    public static <T extends MobPatch<?>> Consumer<T> setStrafing(int strafingTime, int inactionTime, float forward, float clockwise, int phase){
+    public static <T extends MobPatch<?>> Consumer<T> setStrafing(int strafingTime, int inactionTime, float forward, float clockwise, int phase, int hurtResist){
         return (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
+                advancedCustomHumanoidMobPatch.setHurtResistLevel(hurtResist);
                 advancedCustomHumanoidMobPatch.setStrafingTime(strafingTime);
                 advancedCustomHumanoidMobPatch.setInactionTime(inactionTime);
                 advancedCustomHumanoidMobPatch.setStrafingDirection(forward, clockwise);

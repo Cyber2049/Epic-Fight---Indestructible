@@ -12,6 +12,7 @@
     "TargetIndicatorMixin"
   ],
   "server": [
+    "CombatBehaviorsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

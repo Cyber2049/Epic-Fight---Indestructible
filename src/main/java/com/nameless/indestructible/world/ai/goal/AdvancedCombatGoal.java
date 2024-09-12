@@ -1,5 +1,6 @@
 package com.nameless.indestructible.world.ai.goal;
 
+import com.nameless.indestructible.mixin.CombatBehaviorsMixin;
 import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
 import yesman.epicfight.api.animation.types.EntityState;
 import yesman.epicfight.world.capabilities.entitypatch.HumanoidMobPatch;
@@ -14,17 +15,22 @@ public class AdvancedCombatGoal<T extends HumanoidMobPatch<?>> extends AnimatedA
 	
 	@Override
 	public void tick() {
+		if(!(this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch)) return;
 
-		boolean inaction = this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch && (ACHMobpatch.isBlocking() || ACHMobpatch.getInactionTime() >0);
+		boolean inaction =  (ACHMobpatch.isBlocking() || ACHMobpatch.getInactionTime() >0);
 		if (this.mobpatch.getTarget() != null) {
 			EntityState state = this.mobpatch.getEntityState();
 			this.combatBehaviors.tick();
 			if (this.combatBehaviors.hasActivatedMove()) {
+				if(state.hurt() && state.hurtLevel() >= ACHMobpatch.getHurtResistLevel()){
+					((CombatBehaviorsMixin)this.combatBehaviors).setCurrentBehaviorPointer(-1);
+					return;
+				}
 				if (state.canBasicAttack() && !inaction) {
 					CombatBehaviors.Behavior<T> result = this.combatBehaviors.tryProceed();
 
 					if (result != null) {
-						if(this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch) ACHMobpatch.resetMotion();
+						ACHMobpatch.resetMotion();
 						result.execute(this.mobpatch);
 					}
 				}
@@ -33,7 +39,7 @@ public class AdvancedCombatGoal<T extends HumanoidMobPatch<?>> extends AnimatedA
 					CombatBehaviors.Behavior<T> result = this.combatBehaviors.selectRandomBehaviorSeries();
 
 					if (result != null) {
-						if(this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch) ACHMobpatch.resetMotion();
+						ACHMobpatch.resetMotion();
 						result.execute(this.mobpatch);
 					}
 				}
