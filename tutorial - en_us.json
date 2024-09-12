@@ -106,7 +106,8 @@
 								"can_block_projectile" : false,     	 	     	//optional， whether can defend against projectiles, default: false
 								"parry_cost_multiply": 0.5,				//optional, The multiplier of stamina consumption after parrying any damage, default: 0.5
 								"parry_animation":[]					//optional, list of parry animations.
-							}
+							},
+							"end_by_hurt_level": 2 			//optional,  can end entities' combo when they get stunned.1: all types of stun, 2: only long, knockdown, neutralize, 3: never, default: 2
 						}
 					]
 				},
