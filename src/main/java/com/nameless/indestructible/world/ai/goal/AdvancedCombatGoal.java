@@ -1,5 +1,6 @@
 package com.nameless.indestructible.world.ai.goal;
 
+import com.nameless.indestructible.mixin.BehaviorSeriesMixin;
 import com.nameless.indestructible.mixin.CombatBehaviorsMixin;
 import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
 import yesman.epicfight.api.animation.types.EntityState;
@@ -22,10 +23,14 @@ public class AdvancedCombatGoal<T extends HumanoidMobPatch<?>> extends AnimatedA
 			EntityState state = this.mobpatch.getEntityState();
 			this.combatBehaviors.tick();
 			if (this.combatBehaviors.hasActivatedMove()) {
-				if(state.hurt() && state.hurtLevel() >= ACHMobpatch.getHurtResistLevel()){
-					((CombatBehaviorsMixin)this.combatBehaviors).setCurrentBehaviorPointer(-1);
+				if(ACHMobpatch.interrupted){
+					((CombatBehaviorsMixin<?>)combatBehaviors).setCurrentBehaviorPointer(-1);
+					CombatBehaviors.BehaviorSeries<?> currentBehaviorSeries = ((CombatBehaviorsMixin<?>)combatBehaviors).getBehaviorSeriesList().get(0);
+					((BehaviorSeriesMixin)currentBehaviorSeries).setNextBehaviorPointer(0);
+					ACHMobpatch.interrupted = false;
 					return;
 				}
+
 				if (state.canBasicAttack() && !inaction) {
 					CombatBehaviors.Behavior<T> result = this.combatBehaviors.tryProceed();
 
@@ -33,7 +38,7 @@ public class AdvancedCombatGoal<T extends HumanoidMobPatch<?>> extends AnimatedA
 						ACHMobpatch.resetMotion();
 						result.execute(this.mobpatch);
 					}
-				}
+                }
 			} else {
 				if (!state.inaction() && !inaction) {
 					CombatBehaviors.Behavior<T> result = this.combatBehaviors.selectRandomBehaviorSeries();

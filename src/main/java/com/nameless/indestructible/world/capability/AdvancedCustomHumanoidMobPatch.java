@@ -134,6 +134,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public  boolean hasBossBar;
     private Component customName;
     private ResourceLocation bossBar;
+    public boolean interrupted;
 
     public AdvancedCustomHumanoidMobPatch(Faction faction, AdvancedCustomHumanoidMobPatchProvider provider) {
         super(faction);
@@ -263,6 +264,10 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
         if(neutralized && this.getEntityState().hurtLevel() < 2){
                 neutralized = false;
+        }
+
+        if(this.getEntityState().hurt() && this.getEntityState().hurtLevel() >= this.getHurtResistLevel()){
+            interrupted = true;
         }
     }
 
@@ -661,7 +666,6 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
             CustomGuardAnimation animation = this.getGuardAnimation();
             StaticAnimation success = animation.successAnimation != null ? EpicFightMod.getInstance().animationManager.findAnimationByPath(animation.successAnimation) : Animations.SWORD_GUARD_HIT;
             boolean isFront = false;
-            boolean canBlockSource = this.canBlockSource(damageSource);
             Vec3 sourceLocation = damageSource.getSourcePosition();
 
             if (sourceLocation != null) {
@@ -672,7 +676,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                     isFront = true;
                 }
             }
-            if (canBlockSource && isFront) {
+            if (this.canBlockSource(damageSource) && isFront) {
                 float impact;
                 float knockback;
                 if (damageSource instanceof EpicFightDamageSource efDamageSource) {

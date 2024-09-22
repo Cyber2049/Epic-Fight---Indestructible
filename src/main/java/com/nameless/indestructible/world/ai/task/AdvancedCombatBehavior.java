@@ -1,6 +1,7 @@
 package com.nameless.indestructible.world.ai.task;
 
 import com.google.common.collect.ImmutableMap;
+import com.nameless.indestructible.mixin.BehaviorSeriesMixin;
 import com.nameless.indestructible.mixin.CombatBehaviorsMixin;
 import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
 import net.minecraft.server.level.ServerLevel;
@@ -45,8 +46,11 @@ public class AdvancedCombatBehavior<T extends MobPatch<?>> extends Behavior<Mob>
 			EntityState state = this.mobpatch.getEntityState();
 			this.combatBehaviors.tick();
 			if (this.combatBehaviors.hasActivatedMove()) {
-				if(state.hurt() && state.hurtLevel() >= ACHMobpatch.getHurtResistLevel()){
-					((CombatBehaviorsMixin)this.combatBehaviors).setCurrentBehaviorPointer(-1);
+				if(ACHMobpatch.interrupted){
+					((CombatBehaviorsMixin<?>)combatBehaviors).setCurrentBehaviorPointer(-1);
+					CombatBehaviors.BehaviorSeries<?> currentBehaviorSeries = ((CombatBehaviorsMixin<?>)combatBehaviors).getBehaviorSeriesList().get(0);
+					((BehaviorSeriesMixin)currentBehaviorSeries).setNextBehaviorPointer(0);
+					ACHMobpatch.interrupted = false;
 					return;
 				}
 				if (state.canBasicAttack() && !inaction) {

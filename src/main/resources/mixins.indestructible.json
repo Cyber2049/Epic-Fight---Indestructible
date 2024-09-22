@@ -5,6 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "AttackAnimationMixin",
+    "BehaviorSeriesMixin",
+    "CombatBehaviorsMixin",
     "MainFrameAnimationMixin"
   ],
   "client": [
@@ -12,7 +14,6 @@
     "TargetIndicatorMixin"
   ],
   "server": [
-    "CombatBehaviorsMixin"
   ],
   "injectors": {
     "defaultRequire": 1
