@@ -32,6 +32,9 @@ import net.minecraftforge.registries.ForgeRegistries;
 import yesman.epicfight.api.animation.LivingMotion;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.client.model.Meshes;
+import yesman.epicfight.api.collider.Collider;
+import yesman.epicfight.api.collider.MultiOBBCollider;
+import yesman.epicfight.api.collider.OBBCollider;
 import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
 import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.client.ClientEngine;
@@ -144,6 +147,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                 provider.attackRadius = tag.getCompound("attributes").contains("attack_radius") ? (float)tag.getCompound("attributes").getDouble("attack_radius") : 1.5F;
                 provider.guardRadius = tag.getCompound("attributes").contains("guard_radius") ? (float)tag.getCompound("attributes").getDouble("guard_radius") : 3F;
                 provider.stunEvent = deserializeStunCommandList(tag.getList("stun_command_list", 10));
+                provider.blockedEvent = deserializeBlockedCommandList(tag.getList("blocked_command_list", 10));
             }
             return provider;
     }
@@ -223,6 +227,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         protected ResourceLocation bossBar;
         protected String name;
         protected List<CommandEvent.StunEvent> stunEvent;
+        protected List<CommandEvent.BlockedEvent> blockedEvent;
         public AdvancedCustomHumanoidMobPatchProvider() {
         }
 
@@ -272,6 +277,9 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         public float getAttackRadius(){return this.attackRadius;}
         public List<CommandEvent.StunEvent> getStunEvent(){
             return this.stunEvent;
+        }
+        public List<CommandEvent.BlockedEvent> getBlockedEvent(){
+            return this.blockedEvent;
         }
         public boolean hasBossBar(){return this.hasBossBar;}
         public String getName(){return this.name;}
@@ -380,7 +388,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                     float convertTime = behavior.contains("convert_time") ? (float)behavior.getDouble("convert_time") : 0F;
                     CustomAnimationMotion motion = new CustomAnimationMotion(animation,convertTime,speed,stamina);
                     List<CommandEvent.TimeStampedEvent> timeCommandList = behavior.contains("command_list") ? deserializeTimeCommandList(behavior.getList("command_list", 10)) : null;
-                    List<CommandEvent.HitEvent> hitCommandList = behavior.contains("hit_command_list") ? deserializeHitCommandList(behavior.getList("hit_command_list", 10)) : null;
+                    List<CommandEvent.BiEvent> hitCommandList = behavior.contains("hit_command_list") ? deserializeHitCommandList(behavior.getList("hit_command_list", 10)) : null;
                     DamageSourceModifier modifier = behavior.contains("damage_modifier") ? deserializeDamageModifier(behavior.getCompound("damage_modifier")) : null;
                     behaviorBuilder.behavior(customAttackAnimation(motion, modifier, timeCommandList, hitCommandList, phase, hurt_level));
                 } else if (behavior.contains("guard")){
@@ -422,25 +430,25 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
 
 
     private static <T extends MobPatch<?>> Consumer<T> customAttackAnimation(CustomAnimationMotion motion, @Nullable DamageSourceModifier damageSourceModifier,
-                                                                             @Nullable List<CommandEvent.TimeStampedEvent> timeEvents, @Nullable List<CommandEvent.HitEvent> hitEvents, int phase, int hurtResist){
+                                                                             @Nullable List<CommandEvent.TimeStampedEvent> timeEvents, @Nullable List<CommandEvent.BiEvent> hitEvents, int phase, int hurtResist){
         return (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
-                advancedCustomHumanoidMobPatch.setHurtResistLevel(hurtResist);
                 advancedCustomHumanoidMobPatch.setAttackSpeed(motion.speed());
                 advancedCustomHumanoidMobPatch.setBlocking(false);
                 if(motion.stamina() != 0F) advancedCustomHumanoidMobPatch.setStamina(advancedCustomHumanoidMobPatch.getStamina() - motion.stamina());
                 if(timeEvents != null){
                     for(CommandEvent.TimeStampedEvent event : timeEvents){
-                        advancedCustomHumanoidMobPatch.addEvent(event);
+                        advancedCustomHumanoidMobPatch.getEventManager().addTimeStampedEvent(event);
                     }
                 }
                 if(hitEvents != null){
-                    for(CommandEvent.HitEvent event : hitEvents){
-                        advancedCustomHumanoidMobPatch.addEvent(event);
+                    for(CommandEvent.BiEvent event : hitEvents){
+                        advancedCustomHumanoidMobPatch.getEventManager().addHitEvent(event);
                     }
                 }
                 advancedCustomHumanoidMobPatch.setDamageSourceModifier(damageSourceModifier);
                 if(phase >= 0)advancedCustomHumanoidMobPatch.setPhase(phase);
+                advancedCustomHumanoidMobPatch.setHurtResistLevel(hurtResist);
             }
             if(!mobpatch.getEntityState().turningLocked()){mobpatch.getOriginal().lookAt(mobpatch.getTarget(),30F,30F); }
             mobpatch.playAnimationSynchronized(motion.animation(), motion.convertTime(), SPPlayAnimation::new);
@@ -468,8 +476,8 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                                                                      boolean cancel, @Nullable GuardMotion guard_motion, int phase, int hurtResist) {
         return (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
-                advancedCustomHumanoidMobPatch.setHurtResistLevel(hurtResist);
                 advancedCustomHumanoidMobPatch.specificGuardMotion(guard_motion);
+                advancedCustomHumanoidMobPatch.updateGuardAnimation();
                 advancedCustomHumanoidMobPatch.setBlocking(true);
                 advancedCustomHumanoidMobPatch.setBlockTick(guardTime);
                 advancedCustomHumanoidMobPatch.setParry(parry);
@@ -477,6 +485,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                 advancedCustomHumanoidMobPatch.setStunImmunityTime(stun_immunity_time);
                 advancedCustomHumanoidMobPatch.setCounterMotion(counter_motion);
                 advancedCustomHumanoidMobPatch.cancelBlock(cancel);
+                advancedCustomHumanoidMobPatch.setHurtResistLevel(hurtResist);
                 if(phase >= 0)advancedCustomHumanoidMobPatch.setPhase(phase);
             }
         };
@@ -485,10 +494,10 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
     public static <T extends MobPatch<?>> Consumer<T> setStrafing(int strafingTime, int inactionTime, float forward, float clockwise, int phase, int hurtResist){
         return (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
-                advancedCustomHumanoidMobPatch.setHurtResistLevel(hurtResist);
                 advancedCustomHumanoidMobPatch.setStrafingTime(strafingTime);
                 advancedCustomHumanoidMobPatch.setInactionTime(inactionTime);
                 advancedCustomHumanoidMobPatch.setStrafingDirection(forward, clockwise);
+                advancedCustomHumanoidMobPatch.setHurtResistLevel(hurtResist);
                 if(phase >= 0)advancedCustomHumanoidMobPatch.setPhase(phase);
             }
         };
@@ -507,12 +516,12 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         return list;
     }
 
-    private static List<CommandEvent.HitEvent> deserializeHitCommandList(ListTag args){
-        List<CommandEvent.HitEvent> list = Lists.newArrayList();
+    private static List<CommandEvent.BiEvent> deserializeHitCommandList(ListTag args){
+        List<CommandEvent.BiEvent> list = Lists.newArrayList();
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
             boolean execute_at_target = command.contains("execute_at_target") && command.getBoolean("execute_at_target");
-            CommandEvent.HitEvent event = CommandEvent.HitEvent.CreateHitCommandEvent(command.getString("command"), execute_at_target);
+            CommandEvent.BiEvent event = CommandEvent.BiEvent.CreateBiCommandEvent(command.getString("command"), execute_at_target);
             list.add(event);
         }
         return list;
@@ -529,11 +538,55 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         return list;
     }
 
+    private static List<CommandEvent.BlockedEvent> deserializeBlockedCommandList(ListTag args){
+        List<CommandEvent.BlockedEvent> list = Lists.newArrayList();
+        for(int k = 0; k < args.size(); k++){
+            CompoundTag command = args.getCompound(k);
+            boolean execute_at_target = command.contains("execute_at_target") && command.getBoolean("execute_at_target");
+            CommandEvent.BlockedEvent event = CommandEvent.BlockedEvent.CreateBlockCommandEvent(command.getString("command"), execute_at_target, command.getBoolean("is_parry"));
+            list.add(event);
+        }
+        return list;
+    }
+
     private static DamageSourceModifier deserializeDamageModifier(CompoundTag args){
         float damage = args.contains("damage") ? args.getFloat("damage") : 1F;
         float impact = args.contains("impact") ? args.getFloat("impact") : 1F;
         float armor_negation = args.contains("armor_negation") ? args.getFloat("armor_negation") : 1F;
-        return new DamageSourceModifier(damage, impact, armor_negation);
+        StunType stunType = args.contains("stun_type") ? StunType.valueOf(args.getString("stun_type").toUpperCase(Locale.ROOT)) : null;
+        Collider collider = args.contains("collider") ?  deserializeCollider(args.getCompound("collider")) : null;
+        return new DamageSourceModifier(damage, impact, armor_negation, stunType, collider);
+    }
+
+    private static Collider deserializeCollider(CompoundTag tag) {
+        int number = tag.getInt("number");
+
+        if (number < 1) {
+            EpicFightMod.LOGGER.warn("Datapack deserialization error: the number of colliders must bigger than 0! ");
+            return null;
+        }
+
+        ListTag sizeVector = tag.getList("size", 6);
+        ListTag centerVector = tag.getList("center", 6);
+
+        double sizeX = sizeVector.getDouble(0);
+        double sizeY = sizeVector.getDouble(1);
+        double sizeZ = sizeVector.getDouble(2);
+
+        double centerX = centerVector.getDouble(0);
+        double centerY = centerVector.getDouble(1);
+        double centerZ = centerVector.getDouble(2);
+
+        if (sizeX < 0 || sizeY < 0 || sizeZ < 0) {
+            EpicFightMod.LOGGER.warn("Datapack deserialization error: the size of the collider must be non-negative! ");
+            return null;
+        }
+
+        if (number == 1) {
+            return new OBBCollider(sizeX, sizeY, sizeZ, centerX, centerY, centerZ);
+        } else {
+            return new MultiOBBCollider(number, sizeX, sizeY, sizeZ, centerX, centerY, centerZ);
+        }
     }
 
 

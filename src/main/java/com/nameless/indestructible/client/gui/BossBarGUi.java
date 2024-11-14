@@ -48,7 +48,7 @@ public class BossBarGUi {
             event.setCanceled(true);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.setShaderTexture(0, achPatch.getBossBar());
-            int l = Minecraft.getInstance().font.width(achPatch.getOriginal().getDisplayName());
+            int l = Minecraft.getInstance().font.width(achPatch.getCustomName());
             int i1 = event.getWindow().getGuiScaledWidth() / 2 - l / 2;
             int x = event.getX() - 36;
             int y = event.getY(); // + 31;

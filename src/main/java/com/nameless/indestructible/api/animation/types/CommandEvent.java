@@ -59,12 +59,12 @@ public class CommandEvent {
 		}
 	}
 
-	public static class HitEvent {
+	public static class BiEvent {
 		protected final BiConsumer<LivingEntityPatch<?>, Entity> event;
-		private HitEvent(BiConsumer<LivingEntityPatch<?>, Entity> event){
+		private BiEvent(BiConsumer<LivingEntityPatch<?>, Entity> event){
 			this.event = event;
 		}
-		public static HitEvent CreateHitCommandEvent(String command, boolean isTarget) {
+		public static BiEvent CreateBiCommandEvent(String command, boolean isTarget) {
 			BiConsumer<LivingEntityPatch<?>, Entity> event = (entitypatch, target) -> {
 				Level server = entitypatch.getOriginal().level;
 				CommandSourceStack css = entitypatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
@@ -75,7 +75,7 @@ public class CommandEvent {
 					server.getServer().getCommands().performCommand(css,command);
 				}
 			};
-			return new HitEvent(event);
+			return new BiEvent(event);
 		}
 
 		public void testAndExecute(LivingEntityPatch<?> entitypatch, Entity target) {
@@ -85,7 +85,7 @@ public class CommandEvent {
 		}
 	}
 
-	public static class StunEvent extends HitEvent{
+	public static class StunEvent extends BiEvent {
 		private final int condition;
 		private StunEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, int condition){
 			super(event);
@@ -109,6 +109,34 @@ public class CommandEvent {
 		public void testAndExecute(LivingEntityPatch<?> entitypatch, Entity target, int condition) {
 			if(!entitypatch.isLogicalClient() && this.condition == condition) {
 				this.event.accept(entitypatch, target);
+			}
+		}
+	}
+
+	public static class BlockedEvent {
+		protected final BiConsumer<LivingEntityPatch<?>, Entity> event;
+		boolean isParry;
+		private BlockedEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, boolean isParry){
+			this.event = event;
+			this.isParry = isParry;
+		}
+		public static BlockedEvent CreateBlockCommandEvent(String command, boolean isTarget, boolean isParry) {
+			BiConsumer<LivingEntityPatch<?>, Entity> event = (entitypatch, target) -> {
+				Level server = entitypatch.getOriginal().level;
+				CommandSourceStack css = entitypatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
+				if (isTarget && target instanceof LivingEntity) {
+					css = css.withEntity(target);
+				}
+				if(server.getServer() != null && entitypatch.getOriginal() != null){
+					server.getServer().getCommands().performCommand(css,command);
+				}
+			};
+			return new BlockedEvent(event, isParry);
+		}
+
+		public void testAndExecute(LivingEntityPatch<?> entitypatch, Entity target, boolean isParry) {
+			if(!entitypatch.isLogicalClient() && this.isParry == isParry) {
+				this.event.accept(entitypatch,target);
 			}
 		}
 	}

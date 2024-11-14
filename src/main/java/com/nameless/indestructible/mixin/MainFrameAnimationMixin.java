@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import yesman.epicfight.api.animation.AnimationPlayer;
-import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.MainFrameAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
@@ -23,17 +22,17 @@ public class MainFrameAnimationMixin extends StaticAnimation {
 
     @Inject(method = "tick(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;)V",at = @At("TAIL"), remap = false)
     public void onTick(LivingEntityPatch<?> entitypatch, CallbackInfo ci){
-        if(!entitypatch.isLogicalClient() && entitypatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch && advancedCustomHumanoidMobPatch.hasTimeEvent()){
+        if(!entitypatch.isLogicalClient() && entitypatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch && advancedCustomHumanoidMobPatch.getEventManager().hasTimeEvent()){
 
-                AnimationPlayer player = entitypatch.getAnimator().getPlayerFor((DynamicAnimation) (Object)this);
+                AnimationPlayer player = entitypatch.getAnimator().getPlayerFor(this);
                 if (player != null) {
                     float prevElapsed = player.getPrevElapsedTime();
                     float elapsed = player.getElapsedTime();
 
 
-                    for(CommandEvent.TimeStampedEvent event: advancedCustomHumanoidMobPatch.getTimeEventList()){
+                    for(CommandEvent.TimeStampedEvent event: advancedCustomHumanoidMobPatch.getEventManager().getTimeEventList()){
                             event.testAndExecute(entitypatch, prevElapsed, elapsed);
-                            if(!advancedCustomHumanoidMobPatch.getOriginal().isAlive() || !advancedCustomHumanoidMobPatch.hasTimeEvent()){break;}
+                            if(!advancedCustomHumanoidMobPatch.getOriginal().isAlive() || !advancedCustomHumanoidMobPatch.getEventManager().hasTimeEvent()){break;}
                     }
                 }
         }
