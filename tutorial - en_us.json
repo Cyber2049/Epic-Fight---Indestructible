@@ -76,6 +76,9 @@
 	"stun_command_list":[ 										//optional， List of commands that will be executed when it's stunned by current stun type.
 		{"command":"effect give @s epicfight:stun_immunity 6000 5", "stun_type": "short", "execute_at_target":true}
 	],
+	"blocked_command_list":[ 										//optional， List of commands that will be executed when attack is blocked by others.
+		{"command":"effect give @s epicfight:stun_immunity 6000 5", "is_parry": false, "execute_at_target":true}
+	],
 	"combat_behavior": [
 		{
 			"weapon_categories": ["sword","longsword"],
@@ -134,7 +137,9 @@
 							"damage_modifier": {	    								//optional, damage adjustment, only effective when current animation is an attack animation
 								"damage": 1, 	    								//damage rate, orignal damage * rate, default: 1
 								"impact": 1, 	   								//impact rate, orignal impat * rate, default: 1
-								"armor_negation": 1								//armor negation rate, orignal armor negation * rate, default: 1，Result not greater than 100%
+								"armor_negation": 1,								//armor negation rate, orignal armor negation * rate, default: 1，Result not greater than 100%
+								"stun_type": "short",								//optional, specifiy stun type
+								"collider":{"number": 3,"center": [0.0, 0.0, -1.0],"size": [0.5, 0.8, 1.0]}
 							},
 							"end_by_hurt_level": 2 			//optional,  can end entities' combo when they get stunned.1: all types of stun, 2: only long, knockdown, neutralize, 3: never, default: 2
 
