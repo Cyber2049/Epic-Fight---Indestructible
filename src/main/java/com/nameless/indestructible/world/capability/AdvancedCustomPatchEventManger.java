@@ -48,20 +48,20 @@ public class AdvancedCustomPatchEventManger {
     public List<CommandEvent.BlockedEvent> getBlockedEvents(){
         return this.blockedEvents;
     }
+    public void addBlockedEvents(CommandEvent.BlockedEvent event){
+        this.blockedEvents.add(event);
+    }
 
     public void initPassiveEvent(AdvancedMobpatchReloader.AdvancedCustomHumanoidMobPatchProvider provider){
         this.stunEvents.clear();
         if(provider.getStunEvent() != null && !provider.getStunEvent().isEmpty()){
             this.stunEvents.addAll(provider.getStunEvent());
         }
-        this.blockedEvents.clear();
-        if(provider.getBlockedEvent() != null && !provider.getBlockedEvent().isEmpty()){
-            this.blockedEvents.addAll(provider.getBlockedEvent());
-        }
     }
 
     public void initAnimationEvent(){
         if (this.hasTimeEvent()) this.timeEvents.clear();
         if (this.hasHitEvent()) this.hitEvents.clear();
+        if(this.hasBlockEvents()) this.blockedEvents.clear();
     }
 }

@@ -147,7 +147,6 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                 provider.attackRadius = tag.getCompound("attributes").contains("attack_radius") ? (float)tag.getCompound("attributes").getDouble("attack_radius") : 1.5F;
                 provider.guardRadius = tag.getCompound("attributes").contains("guard_radius") ? (float)tag.getCompound("attributes").getDouble("guard_radius") : 3F;
                 provider.stunEvent = deserializeStunCommandList(tag.getList("stun_command_list", 10));
-                provider.blockedEvent = deserializeBlockedCommandList(tag.getList("blocked_command_list", 10));
             }
             return provider;
     }
@@ -278,9 +277,6 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         public List<CommandEvent.StunEvent> getStunEvent(){
             return this.stunEvent;
         }
-        public List<CommandEvent.BlockedEvent> getBlockedEvent(){
-            return this.blockedEvent;
-        }
         public boolean hasBossBar(){return this.hasBossBar;}
         public String getName(){return this.name;}
         public ResourceLocation getBossBar(){return this.bossBar;}
@@ -390,7 +386,8 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                     List<CommandEvent.TimeStampedEvent> timeCommandList = behavior.contains("command_list") ? deserializeTimeCommandList(behavior.getList("command_list", 10)) : null;
                     List<CommandEvent.BiEvent> hitCommandList = behavior.contains("hit_command_list") ? deserializeHitCommandList(behavior.getList("hit_command_list", 10)) : null;
                     DamageSourceModifier modifier = behavior.contains("damage_modifier") ? deserializeDamageModifier(behavior.getCompound("damage_modifier")) : null;
-                    behaviorBuilder.behavior(customAttackAnimation(motion, modifier, timeCommandList, hitCommandList, phase, hurt_level));
+                    List<CommandEvent.BlockedEvent> blockedEvents = behavior.contains("blocked_command_list") ? deserializeBlockedCommandList(behavior.getList("blocked_command_list",10)) : null;
+                    behaviorBuilder.behavior(customAttackAnimation(motion, modifier, timeCommandList, hitCommandList, blockedEvents, phase, hurt_level));
                 } else if (behavior.contains("guard")){
                     int guardTime = behavior.getInt("guard");
                     StaticAnimation counter = behavior.contains("counter") ? EpicFightMod.getInstance().animationManager.findAnimationByPath(behavior.getString("counter")) : GuardAnimations.MOB_COUNTER_ATTACK;
@@ -429,8 +426,8 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
 
 
 
-    private static <T extends MobPatch<?>> Consumer<T> customAttackAnimation(CustomAnimationMotion motion, @Nullable DamageSourceModifier damageSourceModifier,
-                                                                             @Nullable List<CommandEvent.TimeStampedEvent> timeEvents, @Nullable List<CommandEvent.BiEvent> hitEvents, int phase, int hurtResist){
+    public static <T extends MobPatch<?>> Consumer<T> customAttackAnimation(CustomAnimationMotion motion, @Nullable DamageSourceModifier damageSourceModifier,
+                                                                             @Nullable List<CommandEvent.TimeStampedEvent> timeEvents, @Nullable List<CommandEvent.BiEvent> hitEvents, @Nullable List<CommandEvent.BlockedEvent> blockedEvents, int phase, int hurtResist){
         return (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
                 advancedCustomHumanoidMobPatch.setAttackSpeed(motion.speed());
@@ -446,6 +443,11 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                         advancedCustomHumanoidMobPatch.getEventManager().addHitEvent(event);
                     }
                 }
+                if(blockedEvents != null){
+                    for(CommandEvent.BlockedEvent event : blockedEvents){
+                        advancedCustomHumanoidMobPatch.getEventManager().addBlockedEvents(event);
+                    }
+                }
                 advancedCustomHumanoidMobPatch.setDamageSourceModifier(damageSourceModifier);
                 if(phase >= 0)advancedCustomHumanoidMobPatch.setPhase(phase);
                 advancedCustomHumanoidMobPatch.setHurtResistLevel(hurtResist);
@@ -455,7 +457,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         };
     }
 
-    private static GuardMotion deserializeSpecificGuardMotion(CompoundTag args){
+    public static GuardMotion deserializeSpecificGuardMotion(CompoundTag args){
         StaticAnimation guard = args.contains("guard") ? EpicFightMod.getInstance().animationManager.findAnimationByPath(args.getString("guard")) : GuardAnimations.MOB_LONGSWORD_GUARD;
         float guard_cost = args.contains("stamina_cost_multiply") ? (float)args.getDouble("stamina_cost_multiply") : 1F;
         boolean canBlockProjectile = args.contains("can_block_projectile") && args.getBoolean("can_block_projectile");
@@ -505,7 +507,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
 
 
 
-    private static List<CommandEvent.TimeStampedEvent> deserializeTimeCommandList(ListTag args){
+    public static List<CommandEvent.TimeStampedEvent> deserializeTimeCommandList(ListTag args){
         List<CommandEvent.TimeStampedEvent> list = Lists.newArrayList();
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
@@ -516,7 +518,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         return list;
     }
 
-    private static List<CommandEvent.BiEvent> deserializeHitCommandList(ListTag args){
+    public static List<CommandEvent.BiEvent> deserializeHitCommandList(ListTag args){
         List<CommandEvent.BiEvent> list = Lists.newArrayList();
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
@@ -527,7 +529,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         return list;
     }
 
-    private static List<CommandEvent.StunEvent> deserializeStunCommandList(ListTag args){
+    public static List<CommandEvent.StunEvent> deserializeStunCommandList(ListTag args){
         List<CommandEvent.StunEvent> list = Lists.newArrayList();
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
@@ -538,7 +540,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         return list;
     }
 
-    private static List<CommandEvent.BlockedEvent> deserializeBlockedCommandList(ListTag args){
+    public static List<CommandEvent.BlockedEvent> deserializeBlockedCommandList(ListTag args){
         List<CommandEvent.BlockedEvent> list = Lists.newArrayList();
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
@@ -549,7 +551,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         return list;
     }
 
-    private static DamageSourceModifier deserializeDamageModifier(CompoundTag args){
+    public static DamageSourceModifier deserializeDamageModifier(CompoundTag args){
         float damage = args.contains("damage") ? args.getFloat("damage") : 1F;
         float impact = args.contains("impact") ? args.getFloat("impact") : 1F;
         float armor_negation = args.contains("armor_negation") ? args.getFloat("armor_negation") : 1F;
@@ -558,7 +560,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         return new DamageSourceModifier(damage, impact, armor_negation, stunType, collider);
     }
 
-    private static Collider deserializeCollider(CompoundTag tag) {
+    public static Collider deserializeCollider(CompoundTag tag) {
         int number = tag.getInt("number");
 
         if (number < 1) {
@@ -590,7 +592,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
     }
 
 
-    private static <T extends MobPatch<?>> CombatBehaviors.BehaviorPredicate<T> deserializeAdvancedBehaviorPredicate(String type, CompoundTag args) {
+    public static <T extends MobPatch<?>> CombatBehaviors.BehaviorPredicate<T> deserializeAdvancedBehaviorPredicate(String type, CompoundTag args) {
         CombatBehaviors.BehaviorPredicate<T> predicate = null;
         List<String[]> loggerNote = Lists.newArrayList();
 

@@ -738,9 +738,10 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                     }
                     if(damageSource.getDirectEntity() instanceof LivingEntity living && damageSource instanceof EntityDamageSource) {
                         AdvancedCustomHumanoidMobPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(living, AdvancedCustomHumanoidMobPatch.class);
-                        if(targetPatch != null){targetPatch.setParried(this.isParry);}
-                        this.onAttackBlocked(damageSource, this);
-                    }
+                        if(targetPatch != null){
+                            targetPatch.setParried(this.isParry);
+                            targetPatch.onAttackBlocked(damageSource, this);}
+                        }
                     return new AttackResult(AttackResult.ResultType.BLOCKED, amount);
                     //break
                 } else {
