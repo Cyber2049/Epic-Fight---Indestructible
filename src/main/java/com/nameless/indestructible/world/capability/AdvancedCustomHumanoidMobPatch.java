@@ -80,6 +80,7 @@ import yesman.epicfight.world.effect.EpicFightMobEffects;
 import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
 import yesman.epicfight.world.entity.ai.brain.BrainRecomposer;
 import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
+import yesman.epicfight.world.gamerule.EpicFightGamerules;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -835,16 +836,28 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
     @Override
     public void onFall(LivingFallEvent event) {
-        super.onFall(event);
-        this.setAttackSpeed(1F);
-        this.resetActionTick();
-        this.resetMotion();
-        if(this.getEventManager().hasStunEvent()){
-                for(CommandEvent.StunEvent stunEvent: this.getEventManager().getStunEvents()) {
-                    stunEvent.testAndExecute(this, lastAttacker, StunType.FALL.ordinal());
-                    if(!this.getOriginal().isAlive() || !this.getEventManager().hasStunEvent()){break;}
+        if (!this.getOriginal().level.isClientSide() && (this.isAirborneState() || (this.getOriginal().level.getGameRules().getBoolean(EpicFightGamerules.HAS_FALL_ANIMATION)
+                && event.getDamageMultiplier() > 0.0F) && !this.getEntityState().inaction())) {
+
+            if (this.isAirborneState() || event.getDistance() > 5.0F) {
+                StaticAnimation fallAnimation = this.getAnimator().getLivingAnimation(LivingMotions.LANDING_RECOVERY, this.getHitAnimation(StunType.FALL));
+
+                if (fallAnimation != null) {
+                    this.playAnimationSynchronized(fallAnimation, 0);
+                    this.setAttackSpeed(1F);
+                    this.resetActionTick();
+                    this.resetMotion();
+                    if(this.getEventManager().hasStunEvent()){
+                        for(CommandEvent.StunEvent stunEvent: this.getEventManager().getStunEvents()) {
+                            stunEvent.testAndExecute(this, lastAttacker, StunType.FALL.ordinal());
+                            if(!this.getOriginal().isAlive() || !this.getEventManager().hasStunEvent()){break;}
+                        }
+                    }
                 }
+            }
         }
+
+        this.setAirborneState(false);
     }
     @Override
     public void knockBackEntity(Vec3 sourceLocation, float power) {

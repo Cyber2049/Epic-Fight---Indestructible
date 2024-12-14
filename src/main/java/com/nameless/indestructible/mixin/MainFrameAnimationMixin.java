@@ -31,7 +31,7 @@ public class MainFrameAnimationMixin extends StaticAnimation {
 
 
                     for(CommandEvent.TimeStampedEvent event: advancedCustomHumanoidMobPatch.getEventManager().getTimeEventList()){
-                            event.testAndExecute(entitypatch, prevElapsed, elapsed);
+                            event.testAndExecute(advancedCustomHumanoidMobPatch, prevElapsed, elapsed);
                             if(!advancedCustomHumanoidMobPatch.getOriginal().isAlive() || !advancedCustomHumanoidMobPatch.getEventManager().hasTimeEvent()){break;}
                     }
                 }

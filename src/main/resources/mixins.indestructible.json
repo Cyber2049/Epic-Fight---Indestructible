@@ -7,7 +7,7 @@
     "AttackAnimationMixin",
     "BehaviorSeriesMixin",
     "CombatBehaviorsMixin",
-    "GuardSkillMixin",
+    "HurtEventMixin",
     "MainFrameAnimationMixin"
   ],
   "client": [

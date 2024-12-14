@@ -4,19 +4,19 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class CommandEvent {
-	private final Consumer<LivingEntityPatch<?>> event;
-	private CommandEvent(Consumer<LivingEntityPatch<?>> event) {
+	private final Consumer<MobPatch<?>> event;
+	private CommandEvent(Consumer<MobPatch<?>> event) {
 		this.event = event;
 	}
 
-	public void testAndExecute(LivingEntityPatch<?> entitypatch) {
+	public void testAndExecute(MobPatch<?> entitypatch) {
 		if(!entitypatch.isLogicalClient()) {
 			this.event.accept(entitypatch);
 		}
@@ -25,12 +25,12 @@ public class CommandEvent {
 	public static class TimeStampedEvent extends CommandEvent implements Comparable<TimeStampedEvent> {
 		private final float time;
 
-		private TimeStampedEvent(float time, Consumer<LivingEntityPatch<?>> event) {
+		private TimeStampedEvent(float time, Consumer<MobPatch<?>> event) {
 			super(event);
 			this.time = time;
 		}
 
-		public void testAndExecute(LivingEntityPatch<?> entitypatch, float prevElapsed, float elapsed) {
+		public void testAndExecute(MobPatch<?> entitypatch, float prevElapsed, float elapsed) {
 				if (this.time >= prevElapsed && this.time < elapsed) {
 					super.testAndExecute(entitypatch);
 				}
@@ -45,7 +45,7 @@ public class CommandEvent {
 			}
 		}
 		public static TimeStampedEvent CreateTimeCommandEvent(float time, String command, boolean isTarget) {
-			Consumer<LivingEntityPatch<?>> event = (entitypatch) -> {
+			Consumer<MobPatch<?>> event = (entitypatch) -> {
 				Level server = entitypatch.getOriginal().level;
 				CommandSourceStack css = entitypatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
 				if (isTarget && entitypatch.getTarget() != null) {
@@ -60,12 +60,12 @@ public class CommandEvent {
 	}
 
 	public static class BiEvent {
-		protected final BiConsumer<LivingEntityPatch<?>, Entity> event;
-		private BiEvent(BiConsumer<LivingEntityPatch<?>, Entity> event){
+		protected final BiConsumer<MobPatch<?>, Entity> event;
+		private BiEvent(BiConsumer<MobPatch<?>, Entity> event){
 			this.event = event;
 		}
 		public static BiEvent CreateBiCommandEvent(String command, boolean isTarget) {
-			BiConsumer<LivingEntityPatch<?>, Entity> event = (entitypatch, target) -> {
+			BiConsumer<MobPatch<?>, Entity> event = (entitypatch, target) -> {
 				Level server = entitypatch.getOriginal().level;
 				CommandSourceStack css = entitypatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
 				if (isTarget && target instanceof LivingEntity) {
@@ -78,7 +78,7 @@ public class CommandEvent {
 			return new BiEvent(event);
 		}
 
-		public void testAndExecute(LivingEntityPatch<?> entitypatch, Entity target) {
+		public void testAndExecute(MobPatch<?> entitypatch, Entity target) {
 			if(!entitypatch.isLogicalClient()) {
 				this.event.accept(entitypatch,target);
 			}
@@ -87,12 +87,12 @@ public class CommandEvent {
 
 	public static class StunEvent extends BiEvent {
 		private final int condition;
-		private StunEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, int condition){
+		private StunEvent(BiConsumer<MobPatch<?>, Entity> event, int condition){
 			super(event);
 			this.condition = condition;
 		}
 		public static StunEvent CreateStunCommandEvent(String command, boolean isTarget, StunType stunType) {
-			BiConsumer<LivingEntityPatch<?>, Entity> event = (entitypatch, target) -> {
+			BiConsumer<MobPatch<?>, Entity> event = (entitypatch, target) -> {
 				Level server = entitypatch.getOriginal().level;
 				CommandSourceStack css = entitypatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
 				if (isTarget && target instanceof LivingEntity) {
@@ -106,7 +106,7 @@ public class CommandEvent {
 			return  new StunEvent(event, stunType.ordinal());
 		}
 
-		public void testAndExecute(LivingEntityPatch<?> entitypatch, Entity target, int condition) {
+		public void testAndExecute(MobPatch<?> entitypatch, Entity target, int condition) {
 			if(!entitypatch.isLogicalClient() && this.condition == condition) {
 				this.event.accept(entitypatch, target);
 			}
@@ -114,14 +114,14 @@ public class CommandEvent {
 	}
 
 	public static class BlockedEvent {
-		protected final BiConsumer<LivingEntityPatch<?>, Entity> event;
+		protected final BiConsumer<MobPatch<?>, Entity> event;
 		boolean isParry;
-		private BlockedEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, boolean isParry){
+		private BlockedEvent(BiConsumer<MobPatch<?>, Entity> event, boolean isParry){
 			this.event = event;
 			this.isParry = isParry;
 		}
 		public static BlockedEvent CreateBlockCommandEvent(String command, boolean isTarget, boolean isParry) {
-			BiConsumer<LivingEntityPatch<?>, Entity> event = (entitypatch, target) -> {
+			BiConsumer<MobPatch<?>, Entity> event = (entitypatch, target) -> {
 				Level server = entitypatch.getOriginal().level;
 				CommandSourceStack css = entitypatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
 				if (isTarget && target instanceof LivingEntity) {
@@ -134,7 +134,7 @@ public class CommandEvent {
 			return new BlockedEvent(event, isParry);
 		}
 
-		public void testAndExecute(LivingEntityPatch<?> entitypatch, Entity target, boolean isParry) {
+		public void testAndExecute(MobPatch<?> entitypatch, Entity target, boolean isParry) {
 			if(!entitypatch.isLogicalClient() && this.isParry == isParry) {
 				this.event.accept(entitypatch,target);
 			}
