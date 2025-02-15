@@ -9,4 +9,7 @@ public interface BehaviorSeriesMixin {
 
     @Accessor(value = "nextBehaviorPointer", remap = false)
     void setNextBehaviorPointer(int nextBehaviorPointer);
+
+    @Accessor(value = "loopFinished", remap = false)
+    void setLoopFinished(boolean finished);
 }

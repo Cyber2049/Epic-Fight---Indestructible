@@ -22,7 +22,7 @@ public class ExtraPredicate {
         public boolean test(T mobpatch) {
 
             LivingEntityPatch<?> tartgetpatch = EpicFightCapabilities.getEntityPatch(mobpatch.getTarget(), LivingEntityPatch.class);
-            if(tartgetpatch == null) return false;
+            if(tartgetpatch == null) return !this.invert;
             boolean targetisguardbreak = tartgetpatch.getEntityState().hurtLevel() > 1 && tartgetpatch.getAnimator().getPlayerFor(null).getAnimation() instanceof LongHitAnimation animation && NEUTRALIZE_ANIMATION_LIST.contains((StaticAnimation) animation);
             if (!this.invert) {
                 return targetisguardbreak;
@@ -39,7 +39,7 @@ public class ExtraPredicate {
         }
         public boolean test(T mobpatch) {
             LivingEntityPatch<?> tartgetpatch = EpicFightCapabilities.getEntityPatch(mobpatch.getTarget(), LivingEntityPatch.class);
-            if(tartgetpatch == null) return false;
+            if(tartgetpatch == null) return !this.invert;
             boolean targetisknockdown = tartgetpatch.getEntityState().knockDown();
             if (!this.invert) {
                 return targetisknockdown;

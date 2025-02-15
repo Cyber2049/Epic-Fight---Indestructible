@@ -24,8 +24,9 @@ public class AdvancedCombatGoal<T extends HumanoidMobPatch<?>> extends AnimatedA
 			this.combatBehaviors.tick();
 			if (this.combatBehaviors.hasActivatedMove()) {
 				if(ACHMobpatch.interrupted){
-					((CombatBehaviorsMixin<?>)combatBehaviors).setCurrentBehaviorPointer(-1);
-					CombatBehaviors.BehaviorSeries<?> currentBehaviorSeries = ((CombatBehaviorsMixin<?>)combatBehaviors).getBehaviorSeriesList().get(0);
+					int count =  ((CombatBehaviorsMixin<?>)combatBehaviors).getCurrentBehaviorPointer();
+					CombatBehaviors.BehaviorSeries<?> currentBehaviorSeries = ((CombatBehaviorsMixin<?>)combatBehaviors).getBehaviorSeriesList().get(count);
+					((BehaviorSeriesMixin)currentBehaviorSeries).setLoopFinished(true);
 					((BehaviorSeriesMixin)currentBehaviorSeries).setNextBehaviorPointer(0);
 					ACHMobpatch.interrupted = false;
 					return;

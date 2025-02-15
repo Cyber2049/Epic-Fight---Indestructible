@@ -591,36 +591,19 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
             }
         }
 
-        if(this.weaponGuardMotions != null && this.weaponGuardMotions.containsKey(mainhandCap.getWeaponCategory())){
-            Map<Style, GuardMotion> motionByStyle = this.weaponGuardMotions.get(mainhandCap.getWeaponCategory());
-            Style style = mainhandCap.getStyle(this);
-            if(motionByStyle.containsKey(style) || motionByStyle.containsKey(CapabilityItem.Styles.COMMON)){
-                StaticAnimation guard = motionByStyle.getOrDefault(style, motionByStyle.get(CapabilityItem.Styles.COMMON)).guard_animation;
-                this.animator.addLivingAnimation(LivingMotions.BLOCK, guard);
-            }
-        }
+        currentGuardMotion = this.getGuardMotion(mainhandCap);
+        this.animator.addLivingAnimation(LivingMotions.BLOCK, currentGuardMotion.guard_animation);
 
         SPChangeLivingMotion msg = new SPChangeLivingMotion(this.original.getId());
         msg.putEntries(this.getAnimator().getLivingAnimationEntrySet());
         EpicFightNetworkManager.sendToAllPlayerTrackingThisEntity(msg, this.original);
     }
 
-
-
-    public void updateGuardAnimation(){
-        currentGuardMotion = this.getGuardMotion();
-        this.animator.addLivingAnimation(LivingMotions.BLOCK, currentGuardMotion.guard_animation);
-        SPChangeLivingMotion msg = new SPChangeLivingMotion(this.original.getId());
-        msg.putEntries(Set.of(Map.entry(LivingMotions.BLOCK, currentGuardMotion.guard_animation)));
-        EpicFightNetworkManager.sendToAllPlayerTrackingThisEntity(msg, this.original);
-    }
-
-    private GuardMotion getGuardMotion(){
+    private GuardMotion getGuardMotion(CapabilityItem itemCap){
         if(this.specificGuardMotion != null){
             return this.specificGuardMotion;
         }
 
-        CapabilityItem itemCap = this.getHoldingItemCapability(InteractionHand.MAIN_HAND);
         if(this.weaponGuardMotions != null && itemCap != null){
             Style style = itemCap.getStyle(this);
             Map<Style, GuardMotion> mapByStyle = this.weaponGuardMotions.get(itemCap.getWeaponCategory());
@@ -887,6 +870,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
 
     public void onStopTracking(ServerPlayer trackingPlayer) {
         if(this.hasBossBar) this.bossInfo.removePlayer(trackingPlayer);
+        if(this.isLogicalClient()){BossBarGUi.BossBarEntities.remove(this.bossInfo.getId());}
     }
 
     @Override

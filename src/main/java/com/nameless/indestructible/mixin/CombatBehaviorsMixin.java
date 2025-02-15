@@ -11,7 +11,7 @@ import java.util.List;
 public interface CombatBehaviorsMixin<T extends MobPatch<?>> {
 
     @Accessor(value = "currentBehaviorPointer", remap = false)
-    void setCurrentBehaviorPointer(int currentBehaviorPointer);
+    int getCurrentBehaviorPointer();
 
     @Accessor(value = "behaviorSeriesList", remap = false)
     List<CombatBehaviors.BehaviorSeries<T>> getBehaviorSeriesList();

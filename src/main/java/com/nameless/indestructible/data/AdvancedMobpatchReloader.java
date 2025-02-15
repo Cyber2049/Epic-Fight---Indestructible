@@ -226,7 +226,6 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         protected ResourceLocation bossBar;
         protected String name;
         protected List<CommandEvent.StunEvent> stunEvent;
-        protected List<CommandEvent.BlockedEvent> blockedEvent;
         public AdvancedCustomHumanoidMobPatchProvider() {
         }
 
@@ -458,28 +457,32 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
     }
 
     public static GuardMotion deserializeSpecificGuardMotion(CompoundTag args){
-        StaticAnimation guard = args.contains("guard") ? EpicFightMod.getInstance().animationManager.findAnimationByPath(args.getString("guard")) : GuardAnimations.MOB_LONGSWORD_GUARD;
-        float guard_cost = args.contains("stamina_cost_multiply") ? (float)args.getDouble("stamina_cost_multiply") : 1F;
-        boolean canBlockProjectile = args.contains("can_block_projectile") && args.getBoolean("can_block_projectile");
-        float parry_cost = args.contains("parry_cost_multiply") ? (float)args.getDouble("parry_cost_multiply") : 0.5F;
-        StaticAnimation[] parry_animations = null;
-        if(args.contains("parry_animation")){
-            ListTag animationId = args.getList("parry_animation", 8);
-            parry_animations = new StaticAnimation[animationId.size()];
-            for (int j = 0; j < animationId.size(); j++) {
-                StaticAnimation parry_animation = EpicFightMod.getInstance().animationManager.findAnimationByPath(animationId.getString(j));
-                parry_animations[j] = parry_animation;
+        GuardMotion guardMotion = null;
+        if(args.contains("guard") && args.contains("stamina_cost_multiply") && args.contains("can_block_projectile") && args.contains("parry_cost_multiply") && args.contains("parry_animation")) {
+            StaticAnimation guard = EpicFightMod.getInstance().animationManager.findAnimationByPath(args.getString("guard"));
+            float guard_cost = (float) args.getDouble("stamina_cost_multiply");
+            boolean canBlockProjectile = args.getBoolean("can_block_projectile");
+            float parry_cost = (float) args.getDouble("parry_cost_multiply");
+            StaticAnimation[] parry_animations = null;
+            if (args.contains("parry_animation")) {
+                ListTag animationId = args.getList("parry_animation", 8);
+                parry_animations = new StaticAnimation[animationId.size()];
+                for (int j = 0; j < animationId.size(); j++) {
+                    StaticAnimation parry_animation = EpicFightMod.getInstance().animationManager.findAnimationByPath(animationId.getString(j));
+                    parry_animations[j] = parry_animation;
+                }
             }
+            guardMotion = new GuardMotion(guard, canBlockProjectile, guard_cost, parry_cost, parry_animations);
         }
-        return new GuardMotion(guard, canBlockProjectile, guard_cost, parry_cost, parry_animations);
+        return guardMotion;
     }
 
     public static <T extends MobPatch<?>> Consumer<T> setGuardMotion(int guardTime, boolean parry, int parry_time, int stun_immunity_time, CounterMotion counter_motion,
                                                                      boolean cancel, @Nullable GuardMotion guard_motion, int phase, int hurtResist) {
         return (mobpatch) -> {
             if(mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> advancedCustomHumanoidMobPatch){
-                advancedCustomHumanoidMobPatch.specificGuardMotion(guard_motion);
-                advancedCustomHumanoidMobPatch.updateGuardAnimation();
+                if(guard_motion != null) advancedCustomHumanoidMobPatch.specificGuardMotion(guard_motion);
+                advancedCustomHumanoidMobPatch.modifyLivingMotionByCurrentItem();
                 advancedCustomHumanoidMobPatch.setBlocking(true);
                 advancedCustomHumanoidMobPatch.setBlockTick(guardTime);
                 advancedCustomHumanoidMobPatch.setParry(parry);
