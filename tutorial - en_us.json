@@ -76,9 +76,6 @@
 	"stun_command_list":[ 										//optional， List of commands that will be executed when it's stunned by current stun type.
 		{"command":"effect give @s epicfight:stun_immunity 6000 5", "stun_type": "short", "execute_at_target":true}
 	],
-	"blocked_command_list":[ 										//optional， List of commands that will be executed when attack is blocked by others.
-		{"command":"effect give @s epicfight:stun_immunity 6000 5", "is_parry": false, "execute_at_target":true}
-	],
 	"combat_behavior": [
 		{
 			"weapon_categories": ["sword","longsword"],
@@ -132,6 +129,9 @@
 							],
 							"hit_command_list": [									//optional, a list of command executed when it hit someone.
 								{"command":"give @s minecraft:stick", "execute_at_target":true}
+							],
+							"blocked_command_list":[ 										//optional， List of commands that will be executed when attack is blocked by others.
+								{"command":"effect give @s epicfight:stun_immunity 6000 5", "is_parry": false, "execute_at_target":true}
 							],
 							"set_phase": 1, 	    								//optional, custom phase, which it will transition to. This is mainly used for predicate of behavior.
 							"damage_modifier": {	    								//optional, damage adjustment, only effective when current animation is an attack animation
