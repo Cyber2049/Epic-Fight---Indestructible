@@ -15,19 +15,19 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ProjectileWeaponItem;
 import yesman.epicfight.api.animation.types.EntityState;
-import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
+import yesman.epicfight.world.capabilities.entitypatch.HumanoidMobPatch;
 import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
 
-public class AdvancedCombatBehavior<T extends MobPatch<?>> extends Behavior<Mob> {
-	protected final T mobpatch;
-	protected final CombatBehaviors<T> combatBehaviors;
+public class AdvancedCombatBehavior<T extends AdvancedCustomHumanoidMobPatch<?>> extends Behavior<Mob> {
+	protected final AdvancedCustomHumanoidMobPatch<?> mobpatch;
+	protected final CombatBehaviors<HumanoidMobPatch<?>> combatBehaviors;
 	
-	public AdvancedCombatBehavior(T mobpatch, CombatBehaviors<T> combatBehaviors) {
+	public AdvancedCombatBehavior(AdvancedCustomHumanoidMobPatch<?> mobpatch, CombatBehaviors<HumanoidMobPatch<?>> combatBehaviors) {
 		super(ImmutableMap.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT));
 	    this.mobpatch = mobpatch;
 	    this.combatBehaviors = combatBehaviors;
 	}
-	
+
 	@Override
 	protected boolean checkExtraStartConditions(ServerLevel levelIn, Mob entityIn) {
 		return !this.isHoldingRangeWeapon(entityIn) && this.isValidTarget(this.mobpatch.getTarget());
@@ -35,39 +35,38 @@ public class AdvancedCombatBehavior<T extends MobPatch<?>> extends Behavior<Mob>
 	
 	@Override
 	protected boolean canStillUse(ServerLevel levelIn, Mob entityIn, long gameTimeIn) {
-		return this.checkExtraStartConditions(levelIn, entityIn) && BehaviorUtils.canSee(entityIn, this.mobpatch.getTarget()) && !this.mobpatch.getEntityState().hurt();
+		return this.checkExtraStartConditions(levelIn, entityIn) && BehaviorUtils.canSee(entityIn, this.mobpatch.getTarget());
 	}
 	
 	@Override
 	protected void tick(ServerLevel worldIn, Mob entityIn, long gameTimeIn) {
-		if(!(this.mobpatch instanceof AdvancedCustomHumanoidMobPatch<?> ACHMobpatch)) return;
-		boolean inaction = ACHMobpatch.isBlocking() || ACHMobpatch.getInactionTime() >0;
+		boolean inaction = mobpatch.isBlocking() || mobpatch.getInactionTime() >0;
 		if (this.mobpatch.getTarget() != null) {
 			EntityState state = this.mobpatch.getEntityState();
 			this.combatBehaviors.tick();
 			if (this.combatBehaviors.hasActivatedMove()) {
-				if(ACHMobpatch.interrupted){
+				if(mobpatch.interrupted){
 					int count =  ((CombatBehaviorsMixin<?>)combatBehaviors).getCurrentBehaviorPointer();
 					CombatBehaviors.BehaviorSeries<?> currentBehaviorSeries = ((CombatBehaviorsMixin<?>)combatBehaviors).getBehaviorSeriesList().get(count);
 					((BehaviorSeriesMixin)currentBehaviorSeries).setLoopFinished(true);
 					((BehaviorSeriesMixin)currentBehaviorSeries).setNextBehaviorPointer(0);
-					ACHMobpatch.interrupted = false;
+					mobpatch.interrupted = false;
 					return;
 				}
 				if (state.canBasicAttack() && !inaction) {
-					CombatBehaviors.Behavior<T> result = this.combatBehaviors.tryProceed();
+					CombatBehaviors.Behavior<HumanoidMobPatch<?>> result = this.combatBehaviors.tryProceed();
 
 					if (result != null) {
-						ACHMobpatch.resetMotion();
+						mobpatch.resetMotion();
 						result.execute(this.mobpatch);
 					}
 				}
 			} else {
 				if (!state.inaction() && !inaction) {
-					CombatBehaviors.Behavior<T> result = this.combatBehaviors.selectRandomBehaviorSeries();
+					CombatBehaviors.Behavior<HumanoidMobPatch<?>> result = this.combatBehaviors.selectRandomBehaviorSeries();
 
 					if (result != null) {
-						ACHMobpatch.resetMotion();
+						mobpatch.resetMotion();
 						result.execute(this.mobpatch);
 					}
 				}

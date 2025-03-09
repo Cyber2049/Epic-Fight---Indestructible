@@ -37,12 +37,12 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.MeleeAttack;
 import net.minecraft.world.entity.ai.behavior.MoveToTargetSink;
 import net.minecraft.world.entity.ai.behavior.RunIf;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.CrossbowItem;
-import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.phys.Vec3;
@@ -79,6 +79,7 @@ import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.effect.EpicFightMobEffects;
 import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
 import yesman.epicfight.world.entity.ai.brain.BrainRecomposer;
+import yesman.epicfight.world.entity.ai.brain.task.BackUpIfTooCloseStopInaction;
 import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
 import yesman.epicfight.world.gamerule.EpicFightGamerules;
 
@@ -224,6 +225,10 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
         if (this.hasBossBar && this.getOriginal().tickCount % 4 == 0) bossInfo.update();
         if(this.hasStunReduction) {
             super.serverTick(event);
+        }
+
+        if(this.inactionTime > 0){
+           inactionTime--;
         }
 
         if (!this.state.inaction() && this.isBlocking()) {
@@ -411,10 +416,12 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                 CombatBehaviors.Builder<HumanoidMobPatch<?>> builder = this.getHoldingItemWeaponMotionBuilder();
 
                 if (builder != null) {
-                    BrainRecomposer.replaceBehaviors((Brain<T>)this.original.getBrain(), Activity.FIGHT, MeleeAttack.class, new AdvancedCombatBehavior<>(this, builder.build(this)));
-                    BrainRecomposer.replaceBehaviors((Brain<T>)this.original.getBrain(), Activity.FIGHT, RunIf.class, new RunIf<>((entity) -> !entity.isHolding(is -> is.getItem() instanceof ProjectileWeaponItem), new GuardBehavior<>(this,this.guardRadius)));
+                    BrainRecomposer.removeBehaviors((Brain<T>)this.original.getBrain(), Activity.FIGHT, MeleeAttack.class);
+                    this.addBehaviors((Brain<T>)this.original.getBrain(), Activity.CORE,new AdvancedCombatBehavior<>(this, builder.build(this)));
                 }
-                BrainRecomposer.replaceBehaviors((Brain<T>)this.original.getBrain(), Activity.CORE, MoveToTargetSink.class, new AdvancedChasingBehavior<>(this, this.provider.getChasingSpeed(), this.attackRadius));
+                BrainRecomposer.replaceBehaviors((Brain<T>)this.original.getBrain(), Activity.FIGHT, RunIf.class, new RunIf<>((entity) -> entity.isHolding(is -> is.getItem() instanceof CrossbowItem), new BackUpIfTooCloseStopInaction<>(5, 0.75F)));
+                BrainRecomposer.replaceBehaviors((Brain<T>)this.original.getBrain(), Activity.CORE, MoveToTargetSink.class, new AdvancedChasingBehavior<>(this, this.provider.getChasingSpeed(),attackRadius));
+                this.addBehaviors((Brain<T>)this.original.getBrain(), Activity.CORE,new GuardBehavior<>(this, guardRadius));
             }
         } else {
             if (!holdingRangedWeapon) {
@@ -425,6 +432,16 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
                     this.original.goalSelector.addGoal(0, new GuardGoal(this,this.guardRadius));
                     this.original.goalSelector.addGoal(1, new AdvancedChasingGoal<>(this, this.getOriginal(), this.provider.getChasingSpeed(), true,this.attackRadius));
                 }
+            }
+        }
+    }
+
+    public <E extends LivingEntity> void addBehaviors(Brain<E> brain, Activity activity, Behavior<? super E> newBehavior) {
+        for (Map<Activity, Set<Behavior<? super E>>> map : brain.availableBehaviorsByPriority.values()) {
+            Set<Behavior<? super E>> set = map.get(activity);
+
+            if (set != null) {
+                set.add(newBehavior);
             }
         }
     }

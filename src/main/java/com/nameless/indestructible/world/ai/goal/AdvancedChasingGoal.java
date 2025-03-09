@@ -23,10 +23,6 @@ public class AdvancedChasingGoal<T extends AdvancedCustomHumanoidMobPatch<?>> ex
 
 	@Override
 	public void tick() {
-		if(this.mobpatch.getInactionTime() > 0){
-			mobpatch.setInactionTime(mobpatch.getInactionTime()-1);
-		}
-
 		LivingEntity target = this.mob.getTarget();
 		if(target == null) return;
 		if(!this.mobpatch.getEntityState().turningLocked()) {

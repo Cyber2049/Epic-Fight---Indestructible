@@ -5,6 +5,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.behavior.MoveToTargetSink;
+import yesman.epicfight.world.capabilities.EpicFightCapabilities;
+import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 public class AdvancedChasingBehavior<T extends AdvancedCustomHumanoidMobPatch<?>> extends MoveToTargetSink {
 	private final T mobpatch;
@@ -23,11 +25,22 @@ public class AdvancedChasingBehavior<T extends AdvancedCustomHumanoidMobPatch<?>
 	}
 
 	@Override
-	public void tick(ServerLevel level, Mob mob, long p_23619_) {
-		if(this.mobpatch.getInactionTime() > 0){
-			mobpatch.setInactionTime(mobpatch.getInactionTime()-1);
+	protected boolean canStillUse(ServerLevel level, Mob mob, long gameTime) {
+		if (super.canStillUse(level, mob, gameTime)) {
+			MobPatch<?> mobpatch = EpicFightCapabilities.getEntityPatch(mob, MobPatch.class);
+			return !mobpatch.getEntityState().inaction() && !withinDistance(mob);
 		}
+		return false;
+	}
 
+	private boolean withinDistance(Mob mob){
+		LivingEntity target = mob.getTarget();
+		if(target == null) return false;
+		return this.attackRadiusSqr > mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
+	}
+
+	@Override
+	public void tick(ServerLevel level, Mob mob, long p_23619_) {
 		LivingEntity target = mob.getTarget();
 		if(target == null) return;
 		if(!this.mobpatch.getEntityState().turningLocked()) {
@@ -35,16 +48,12 @@ public class AdvancedChasingBehavior<T extends AdvancedCustomHumanoidMobPatch<?>
 		}
 
 		if (this.mobpatch.getEntityState().movementLocked()) return;
-		boolean withDistance = this.attackRadiusSqr > mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
-
 		if (mobpatch.getStrafingTime() > 0) {
 			mobpatch.setStrafingTime(mobpatch.getStrafingTime() - 1);
 			mob.getNavigation().stop();
 			mob.lookAt(target,30F,30F);
-			mob.getMoveControl().strafe(withDistance && mobpatch.getStrafingForward() > 0 ? 0 : mobpatch.getStrafingForward(), mobpatch.getStrafingClockwise());
-		} else if (withDistance) {
-			mob.getNavigation().stop();
-		} else if (this.mobpatch.isBlocking()) {
+			mob.getMoveControl().strafe(this.withinDistance(mob) && mobpatch.getStrafingForward() > 0 ? 0 : mobpatch.getStrafingForward(), mobpatch.getStrafingClockwise());
+		} else if (mobpatch.isBlocking()) {
 			mob.lookAt(target,30F,30F);
 			mob.getNavigation().moveTo(target, this.speed * 0.8F);
 		} else {
