@@ -7,7 +7,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
-import com.nameless.indestructible.api.animation.types.CommandEvent;
+import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
 import com.nameless.indestructible.gameasset.GuardAnimations;
 import com.nameless.indestructible.main.Indestructible;
 import com.nameless.indestructible.network.SPDatapackSync;
@@ -282,7 +282,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         protected ResourceLocation bossBar;
         protected String name;
         protected GuardMotion defaultGuardMotion;
-        protected List<CommandEvent.StunEvent> stunEvent;
+        protected List<LivingEntityPatchEvent.StunEvent> stunEvent;
         public AdvancedCustomMobPatchProvider(){}
         @SuppressWarnings("rawtypes")
         public EntityPatch<?> get(Entity entity) {
@@ -316,7 +316,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         public float getStaminaLoseMultiply(){return this.staminaLoseMultiply;}
         public float getGuardRadius(){return this.guardRadius;}
         public float getAttackRadius(){return this.attackRadius;}
-        public List<CommandEvent.StunEvent> getStunEvent(){
+        public List<LivingEntityPatchEvent.StunEvent> getStunEvent(){
             return this.stunEvent;
         }
         public boolean hasBossBar(){return this.hasBossBar;}
@@ -489,10 +489,10 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                     float stamina = behavior.contains("stamina") ? (float) behavior.getDouble("stamina") : 0F;
                     float convertTime = behavior.contains("convert_time") ? (float)behavior.getDouble("convert_time") : 0F;
                     CustomAnimationMotion motion = new CustomAnimationMotion(animation,convertTime,speed,stamina);
-                    List<CommandEvent.TimeStampedEvent> timeCommandList = behavior.contains("command_list") ? deserializeTimeCommandList(behavior.getList("command_list", 10)) : null;
-                    List<CommandEvent.BiEvent> hitCommandList = behavior.contains("hit_command_list") ? deserializeHitCommandList(behavior.getList("hit_command_list", 10)) : null;
+                    List<LivingEntityPatchEvent.TimeStampedEvent> timeCommandList = behavior.contains("command_list") ? deserializeTimeCommandList(behavior.getList("command_list", 10)) : null;
+                    List<LivingEntityPatchEvent.BiEvent> hitCommandList = behavior.contains("hit_command_list") ? deserializeHitCommandList(behavior.getList("hit_command_list", 10)) : null;
                     DamageSourceModifier modifier = behavior.contains("damage_modifier") ? deserializeDamageModifier(behavior.getCompound("damage_modifier")) : null;
-                    List<CommandEvent.BlockedEvent> blockedEvents = behavior.contains("blocked_command_list") ? deserializeBlockedCommandList(behavior.getList("blocked_command_list",10)) : null;
+                    List<LivingEntityPatchEvent.BlockedEvent> blockedEvents = behavior.contains("blocked_command_list") ? deserializeBlockedCommandList(behavior.getList("blocked_command_list",10)) : null;
                     behaviorBuilder.behavior(customAttackAnimation(motion, modifier, timeCommandList, hitCommandList, blockedEvents, phase, hurt_level));
                 } else if (behavior.contains("guard")){
                     int guardTime = behavior.getInt("guard");
@@ -552,45 +552,45 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
 
 
 
-    public static List<CommandEvent.TimeStampedEvent> deserializeTimeCommandList(ListTag args){
-        List<CommandEvent.TimeStampedEvent> list = Lists.newArrayList();
+    public static List<LivingEntityPatchEvent.TimeStampedEvent> deserializeTimeCommandList(ListTag args){
+        List<LivingEntityPatchEvent.TimeStampedEvent> list = Lists.newArrayList();
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
             boolean execute_at_target = command.contains("execute_at_target") && command.getBoolean("execute_at_target");
-            CommandEvent.TimeStampedEvent event = CommandEvent.TimeStampedEvent.CreateTimeCommandEvent(command.getFloat("time"), command.getString("command"), execute_at_target);
+            LivingEntityPatchEvent.TimeStampedEvent event = LivingEntityPatchEvent.TimeStampedEvent.CreateTimeCommandEvent(command.getFloat("time"), command.getString("command"), execute_at_target);
             list.add(event);
         }
         return list;
     }
 
-    public static List<CommandEvent.BiEvent> deserializeHitCommandList(ListTag args){
-        List<CommandEvent.BiEvent> list = Lists.newArrayList();
+    public static List<LivingEntityPatchEvent.BiEvent> deserializeHitCommandList(ListTag args){
+        List<LivingEntityPatchEvent.BiEvent> list = Lists.newArrayList();
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
             boolean execute_at_target = command.contains("execute_at_target") && command.getBoolean("execute_at_target");
-            CommandEvent.BiEvent event = CommandEvent.BiEvent.CreateBiCommandEvent(command.getString("command"), execute_at_target);
+            LivingEntityPatchEvent.BiEvent event = LivingEntityPatchEvent.BiEvent.CreateBiCommandEvent(command.getString("command"), execute_at_target);
             list.add(event);
         }
         return list;
     }
 
-    public static List<CommandEvent.StunEvent> deserializeStunCommandList(ListTag args){
-        List<CommandEvent.StunEvent> list = Lists.newArrayList();
+    public static List<LivingEntityPatchEvent.StunEvent> deserializeStunCommandList(ListTag args){
+        List<LivingEntityPatchEvent.StunEvent> list = Lists.newArrayList();
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
             boolean execute_at_target = command.contains("execute_at_target") && command.getBoolean("execute_at_target");
-            CommandEvent.StunEvent event = CommandEvent.StunEvent.CreateStunCommandEvent(command.getString("command"), execute_at_target, StunType.valueOf(command.getString("stun_type").toUpperCase(Locale.ROOT)));
+            LivingEntityPatchEvent.StunEvent event = LivingEntityPatchEvent.StunEvent.CreateStunCommandEvent(command.getString("command"), execute_at_target, StunType.valueOf(command.getString("stun_type").toUpperCase(Locale.ROOT)));
             list.add(event);
         }
         return list;
     }
 
-    public static List<CommandEvent.BlockedEvent> deserializeBlockedCommandList(ListTag args){
-        List<CommandEvent.BlockedEvent> list = Lists.newArrayList();
+    public static List<LivingEntityPatchEvent.BlockedEvent> deserializeBlockedCommandList(ListTag args){
+        List<LivingEntityPatchEvent.BlockedEvent> list = Lists.newArrayList();
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
             boolean execute_at_target = command.contains("execute_at_target") && command.getBoolean("execute_at_target");
-            CommandEvent.BlockedEvent event = CommandEvent.BlockedEvent.CreateBlockCommandEvent(command.getString("command"), execute_at_target, command.getBoolean("is_parry"));
+            LivingEntityPatchEvent.BlockedEvent event = LivingEntityPatchEvent.BlockedEvent.CreateBlockCommandEvent(command.getString("command"), execute_at_target, command.getBoolean("is_parry"));
             list.add(event);
         }
         return list;

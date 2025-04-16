@@ -10,9 +10,9 @@ import yesman.epicfight.world.damagesource.StunType;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class CommandEvent {
+public class LivingEntityPatchEvent {
 	private final Consumer<LivingEntityPatch<?>> event;
-	private CommandEvent(Consumer<LivingEntityPatch<?>> event) {
+	public LivingEntityPatchEvent(Consumer<LivingEntityPatch<?>> event) {
 		this.event = event;
 	}
 
@@ -22,10 +22,10 @@ public class CommandEvent {
 		}
 	}
 
-	public static class TimeStampedEvent extends CommandEvent implements Comparable<TimeStampedEvent> {
+	public static class TimeStampedEvent extends LivingEntityPatchEvent implements Comparable<TimeStampedEvent> {
 		private final float time;
 
-		private TimeStampedEvent(float time, Consumer<LivingEntityPatch<?>> event) {
+		public TimeStampedEvent(float time, Consumer<LivingEntityPatch<?>> event) {
 			super(event);
 			this.time = time;
 		}
@@ -61,7 +61,7 @@ public class CommandEvent {
 
 	public static class BiEvent {
 		protected final BiConsumer<LivingEntityPatch<?>, Entity> event;
-		private BiEvent(BiConsumer<LivingEntityPatch<?>, Entity> event){
+		public BiEvent(BiConsumer<LivingEntityPatch<?>, Entity> event){
 			this.event = event;
 		}
 		public static BiEvent CreateBiCommandEvent(String command, boolean isTarget) {
@@ -87,7 +87,7 @@ public class CommandEvent {
 
 	public static class StunEvent extends BiEvent {
 		private final int condition;
-		private StunEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, int condition){
+		public StunEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, int condition){
 			super(event);
 			this.condition = condition;
 		}
@@ -116,7 +116,7 @@ public class CommandEvent {
 	public static class BlockedEvent {
 		protected final BiConsumer<LivingEntityPatch<?>, Entity> event;
 		boolean isParry;
-		private BlockedEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, boolean isParry){
+		public BlockedEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, boolean isParry){
 			this.event = event;
 			this.isParry = isParry;
 		}

@@ -1,33 +1,33 @@
 package com.nameless.indestructible.world.capability.Utils;
 
 import com.google.common.collect.Lists;
-import com.nameless.indestructible.api.animation.types.CommandEvent;
+import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
 
 import java.util.List;
 
 public class AdvancedCustomPatchEventManger {
-    private final List<CommandEvent.TimeStampedEvent> timeEvents = Lists.newArrayList();
-    private final List<CommandEvent.BiEvent> hitEvents = Lists.newArrayList();
-    private final List<CommandEvent.StunEvent> stunEvents = Lists.newArrayList();
-    private final List<CommandEvent.BlockedEvent> blockedEvents = Lists.newArrayList();
+    private final List<LivingEntityPatchEvent.TimeStampedEvent> timeEvents = Lists.newArrayList();
+    private final List<LivingEntityPatchEvent.BiEvent> hitEvents = Lists.newArrayList();
+    private final List<LivingEntityPatchEvent.StunEvent> stunEvents = Lists.newArrayList();
+    private final List<LivingEntityPatchEvent.BlockedEvent> blockedEvents = Lists.newArrayList();
     public boolean hasTimeEvent(){
         return !this.timeEvents.isEmpty();
     }
 
-    public List<CommandEvent.TimeStampedEvent> getTimeEventList(){
+    public List<LivingEntityPatchEvent.TimeStampedEvent> getTimeEventList(){
         return this.timeEvents;
     }
-    public void addTimeStampedEvent(CommandEvent.TimeStampedEvent event){
+    public void addTimeStampedEvent(LivingEntityPatchEvent.TimeStampedEvent event){
         this.timeEvents.add(event);
     }
     public boolean hasHitEvent(){
         return !this.hitEvents.isEmpty();
     }
 
-    public List<CommandEvent.BiEvent> getHitEventList(){
+    public List<LivingEntityPatchEvent.BiEvent> getHitEventList(){
         return this.hitEvents;
     }
-    public void addHitEvent(CommandEvent.BiEvent event){
+    public void addHitEvent(LivingEntityPatchEvent.BiEvent event){
         this.hitEvents.add(event);
     }
 
@@ -35,7 +35,7 @@ public class AdvancedCustomPatchEventManger {
         return !this.stunEvents.isEmpty();
     }
 
-    public List<CommandEvent.StunEvent> getStunEvents(){
+    public List<LivingEntityPatchEvent.StunEvent> getStunEvents(){
         return this.stunEvents;
     }
 
@@ -43,14 +43,14 @@ public class AdvancedCustomPatchEventManger {
         return !this.blockedEvents.isEmpty();
     }
 
-    public List<CommandEvent.BlockedEvent> getBlockedEvents(){
+    public List<LivingEntityPatchEvent.BlockedEvent> getBlockedEvents(){
         return this.blockedEvents;
     }
-    public void addBlockedEvents(CommandEvent.BlockedEvent event){
+    public void addBlockedEvents(LivingEntityPatchEvent.BlockedEvent event){
         this.blockedEvents.add(event);
     }
 
-    public void initPassiveEvent(List<CommandEvent.StunEvent> eventList){
+    public void initPassiveEvent(List<LivingEntityPatchEvent.StunEvent> eventList){
         this.stunEvents.clear();
         if(eventList != null && !eventList.isEmpty()){
             this.stunEvents.addAll(eventList);

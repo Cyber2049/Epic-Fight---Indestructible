@@ -1,6 +1,6 @@
 package com.nameless.indestructible.world.capability.Utils;
 
-import com.nameless.indestructible.api.animation.types.CommandEvent;
+import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.collider.Collider;
 import yesman.epicfight.gameasset.Animations;
@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 public class BehaviorsUtils {
 
     public static <T extends MobPatch<?>> Consumer<T> customAttackAnimation(CustomAnimationMotion motion, @Nullable DamageSourceModifier damageSourceModifier,
-                                                                            @Nullable List<CommandEvent.TimeStampedEvent> timeEvents, @Nullable List<CommandEvent.BiEvent> hitEvents, @Nullable List<CommandEvent.BlockedEvent> blockedEvents, int phase, int hurtResist){
+                                                                            @Nullable List<LivingEntityPatchEvent.TimeStampedEvent> timeEvents, @Nullable List<LivingEntityPatchEvent.BiEvent> hitEvents, @Nullable List<LivingEntityPatchEvent.BlockedEvent> blockedEvents, int phase, int hurtResist){
         return (mobpatch) -> {
             if(mobpatch instanceof IAdvancedCapability iac){
                 iac.setAttackSpeed(motion.speed());
@@ -28,17 +28,17 @@ public class BehaviorsUtils {
             if(mobpatch instanceof IAnimationEventCapability iec){
                 iec.getEventManager().initAnimationEvent();
                 if(timeEvents != null){
-                    for(CommandEvent.TimeStampedEvent event : timeEvents){
+                    for(LivingEntityPatchEvent.TimeStampedEvent event : timeEvents){
                         iec.getEventManager().addTimeStampedEvent(event);
                     }
                 }
                 if(hitEvents != null){
-                    for(CommandEvent.BiEvent event : hitEvents){
+                    for(LivingEntityPatchEvent.BiEvent event : hitEvents){
                         iec.getEventManager().addHitEvent(event);
                     }
                 }
                 if(blockedEvents != null){
-                    for(CommandEvent.BlockedEvent event : blockedEvents){
+                    for(LivingEntityPatchEvent.BlockedEvent event : blockedEvents){
                         iec.getEventManager().addBlockedEvents(event);
                     }
                 }

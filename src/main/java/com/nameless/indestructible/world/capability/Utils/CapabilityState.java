@@ -1,8 +1,8 @@
 package com.nameless.indestructible.world.capability.Utils;
 
 import com.mojang.datafixers.util.Pair;
-import com.nameless.indestructible.api.animation.types.CommandEvent;
 import com.nameless.indestructible.api.animation.types.CustomGuardAnimation;
+import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
 import com.nameless.indestructible.client.ClientBossInfo;
 import com.nameless.indestructible.client.gui.BossBarGUi;
 import com.nameless.indestructible.data.AdvancedMobpatchReloader;
@@ -284,7 +284,7 @@ public class CapabilityState<T extends MobPatch<?>> {
         if(mobPatch instanceof IAnimationEventCapability iec){
             AdvancedCustomPatchEventManger eventManger = iec.getEventManager();
             if(result.resultType.dealtDamage() && eventManger.hasHitEvent()){
-                for(CommandEvent.BiEvent event: eventManger.getHitEventList()) {
+                for(LivingEntityPatchEvent.BiEvent event: eventManger.getHitEventList()) {
                     event.testAndExecute(mobPatch, target);
                     if(!mobPatch.getOriginal().isAlive() || !eventManger.hasHitEvent()){break;}
                 }
@@ -462,7 +462,7 @@ public class CapabilityState<T extends MobPatch<?>> {
 
         if(mobPatch instanceof IAnimationEventCapability iec && iec.getEventManager().hasStunEvent()){
             if(mobPatch.getHitAnimation(stunType) != null){
-                for(CommandEvent.StunEvent event: iec.getEventManager().getStunEvents()) {
+                for(LivingEntityPatchEvent.StunEvent event: iec.getEventManager().getStunEvents()) {
                     event.testAndExecute(mobPatch, lastAttacker, stunType.ordinal());
                     if(!mobPatch.getOriginal().isAlive() || !iec.getEventManager().hasStunEvent()){break;}
                 }
@@ -484,7 +484,7 @@ public class CapabilityState<T extends MobPatch<?>> {
         resetWhenStunned();
         if(mobPatch instanceof IAnimationEventCapability iec) {
             if (iec.getEventManager().hasStunEvent()) {
-                for (CommandEvent.StunEvent stunEvent : iec.getEventManager().getStunEvents()) {
+                for (LivingEntityPatchEvent.StunEvent stunEvent : iec.getEventManager().getStunEvents()) {
                     stunEvent.testAndExecute(mobPatch, lastAttacker, StunType.FALL.ordinal());
                     if (!mobPatch.getOriginal().isAlive() || !iec.getEventManager().hasStunEvent()) {
                         break;
@@ -524,7 +524,7 @@ public class CapabilityState<T extends MobPatch<?>> {
 
     public void onAttackBlocked(LivingEntityPatch<?> livingEntityPatch){
         if(mobPatch instanceof IAnimationEventCapability iec && iec.getEventManager().hasBlockEvents()){
-            for(CommandEvent.BlockedEvent event: iec.getEventManager().getBlockedEvents()) {
+            for(LivingEntityPatchEvent.BlockedEvent event: iec.getEventManager().getBlockedEvents()) {
                 event.testAndExecute(mobPatch, livingEntityPatch.getOriginal(), this.isParried);
                 if(!mobPatch.getOriginal().isAlive() || !iec.getEventManager().hasBlockEvents()){break;}
             }

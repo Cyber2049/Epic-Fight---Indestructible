@@ -1,6 +1,6 @@
 package com.nameless.indestructible.mixin;
 
-import com.nameless.indestructible.api.animation.types.CommandEvent;
+import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
 import com.nameless.indestructible.world.capability.Utils.IAdvancedCapability;
 import com.nameless.indestructible.world.capability.Utils.IAnimationEventCapability;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,7 +31,7 @@ public class MainFrameAnimationMixin extends StaticAnimation {
                     float elapsed = player.getElapsedTime();
 
 
-                    for(CommandEvent.TimeStampedEvent event: iec.getEventManager().getTimeEventList()){
+                    for(LivingEntityPatchEvent.TimeStampedEvent event: iec.getEventManager().getTimeEventList()){
                             event.testAndExecute(entitypatch, prevElapsed, elapsed);
                             if(!entitypatch.getOriginal().isAlive() || !iec.getEventManager().hasTimeEvent()){break;}
                     }

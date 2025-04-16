@@ -1,7 +1,7 @@
 package com.nameless.indestructible.data;
 
 import com.mojang.datafixers.util.Pair;
-import com.nameless.indestructible.api.animation.types.CommandEvent;
+import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
 import com.nameless.indestructible.world.capability.Utils.BehaviorsUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -97,7 +97,7 @@ public class BuilderUtils {
             provider.defaultGuardMotion = defaultGuardMotion;
             return this;
         }
-        public AdvancedCustomMobPatchProviderBuilder setStunEvent(List<CommandEvent.StunEvent> stunEvent){
+        public AdvancedCustomMobPatchProviderBuilder setStunEvent(List<LivingEntityPatchEvent.StunEvent> stunEvent){
             provider.stunEvent = stunEvent;
             return this;
         }
@@ -186,7 +186,7 @@ public class BuilderUtils {
             provider.bossBar = rl;
             return this;
         }
-        public AdvancedCustomHumanoidMobPatchProviderBuilder setStunEvent(List<CommandEvent.StunEvent> stunEvent){
+        public AdvancedCustomHumanoidMobPatchProviderBuilder setStunEvent(List<LivingEntityPatchEvent.StunEvent> stunEvent){
             provider.stunEvent = stunEvent;
             return this;
         }
