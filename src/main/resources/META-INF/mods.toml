@@ -65,7 +65,14 @@ description='''${mod_description}'''
 [[dependencies.${mod_id}]]
     modId="epicfight"
     mandatory=true
-    versionRange="[20.9.2,)"
+    versionRange="[20.9.7,)"
+    ordering="BEFORE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="kubejs"
+    mandatory=false
+    versionRange="[2001.6.5,)"
     ordering="BEFORE"
     side="BOTH"
 

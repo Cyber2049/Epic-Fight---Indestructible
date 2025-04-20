@@ -7,7 +7,6 @@ import com.google.gson.JsonElement;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
 import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
-import com.nameless.indestructible.compat.kubejs.AdvancedMobPatchProviderEvent;
 import com.nameless.indestructible.compat.kubejs.PatchJSPlugin;
 import com.nameless.indestructible.gameasset.GuardAnimations;
 import com.nameless.indestructible.main.Indestructible;
@@ -460,11 +459,15 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
 
             for (int j = 0; j < behaviorList.size(); j++) {
                 //CombatBehaviors.Behavior.Builder<T> behaviorBuilder = CombatBehaviors.Behavior.builder();
-                AdvancedBehavior<T> behaviorBuilder = new AdvancedBehavior<>();
+                AdvancedBehaviorBuilder<T> behaviorBuilder = new AdvancedBehaviorBuilder<>();
                 CompoundTag behavior = behaviorList.getCompound(j);
                 ListTag conditionList = behavior.getList("conditions", 10);
-                int phase = behavior.contains("set_phase") ? behavior.getInt("set_phase") : -1;
-                int hurt_level = behavior.contains("end_by_hurt_level") ? behavior.getInt("end_by_hurt_level") : 2;
+                if(behavior.contains("set_phase")) {
+                    behaviorBuilder.tryProcessSetPhase(behavior.getInt("set_phase"));
+                }
+                if(behavior.contains("end_by_hurt_level")){
+                    behaviorBuilder.tryProcessSetHurtResistLevel(behavior.getInt("end_by_hurt_level"));
+                }
                 if(behavior.contains("animation")) {
                     StaticAnimation animation = AnimationManager.getInstance().byKeyOrThrow(behavior.getString("animation"));
                     AnimationMotionSet motionSet = new AnimationMotionSet(animation, 0F, 1F,0F);
@@ -475,7 +478,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                     motionSet = behavior.contains("command_list") && !behavior.getList("command_list", 10).isEmpty() ? motionSet.addTimeStampedEvents(deserializeTimeCommandList(behavior.getList("command_list", 10))) : motionSet;
                     motionSet = behavior.contains("hit_command_list") && !behavior.getList("hit_command_list", 10).isEmpty() ?  motionSet.addHitEvents(deserializeHitCommandList(behavior.getList("hit_command_list", 10))) : motionSet;
                     motionSet = behavior.contains("blocked_command_list") && !behavior.getList("blocked_command_list",10).isEmpty() ? motionSet.addBlockedEvents(deserializeBlockedCommandList(behavior.getList("blocked_command_list",10)) ) : motionSet;
-                    behaviorBuilder.customAttackAnimation(motionSet,hurt_level,phase);
+                    behaviorBuilder.tryProcessAnimationSet(motionSet);
                     //behaviorBuilder.behavior(customAttackAnimation(motionSet, hurt_level, phase));
                 } else if (behavior.contains("guard")){
                     int guard_time = behavior.getInt("guard");
@@ -491,7 +494,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                     counterMotion = behavior.contains("cancel_after_counter") ? counterMotion.cancelBlock(behavior.getBoolean("cancel_after_counter")) : counterMotion;
                     motionSet = motionSet.setCounterMotion(counterMotion);
                     motionSet = behavior.contains("specific_guard_motion") ? motionSet.setSpecificGuardMotion(deserializeGuardMotions(behavior.getCompound("specific_guard_motion"))) : motionSet;
-                    behaviorBuilder.setGuardMotion(motionSet,phase,hurt_level);
+                    behaviorBuilder.tryProcessGuardMotion(motionSet);
                     //behaviorBuilder.behavior(setGuardMotion(motionSet, phase, hurt_level));
                 } else if (behavior.contains("wander")){
                     int strafingTime = behavior.getInt("wander");
@@ -499,9 +502,10 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                     motionSet = behavior.contains("inaction_time") ?  motionSet.setInactionTime(behavior.getInt("inaction_time"))  : motionSet;
                     motionSet = behavior.contains("z_axis") ? motionSet.setForwardDirection((float) behavior.getDouble("z_axis")) : motionSet;
                     motionSet = behavior.contains("x_axis") ? motionSet.setClockwise ((float) behavior.getDouble("x_axis")) : motionSet;
-                    behaviorBuilder.setStrafing(motionSet,phase,hurt_level);
+                    behaviorBuilder.tryProcessWanderSet(motionSet);
                     //behaviorBuilder.behavior(setStrafing(motionSet, phase, hurt_level));
                 }
+                behaviorBuilder.process();
 
                 for (int k = 0; k < conditionList.size(); k++) {
                     CompoundTag condition = conditionList.getCompound(k);

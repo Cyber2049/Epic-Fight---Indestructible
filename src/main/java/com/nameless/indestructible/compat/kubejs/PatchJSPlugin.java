@@ -2,6 +2,7 @@ package com.nameless.indestructible.compat.kubejs;
 
 import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
 import com.nameless.indestructible.compat.kubejs.Utils.*;
+import com.nameless.indestructible.data.AdvancedMobPatchProviderEvent;
 import com.nameless.indestructible.data.JSCustomHumanoidMobPatchProviderBuilder;
 import com.nameless.indestructible.world.ai.CombatBehaviors.*;
 import dev.latvian.mods.kubejs.KubeJSPlugin;
@@ -31,8 +32,7 @@ public class PatchJSPlugin extends KubeJSPlugin {
 
         event.add("EFCombatBehaviors", CombatBehaviors.class);
         event.add("EFBehaviorSeries", CombatBehaviors.BehaviorSeries.class);
-        event.add("EFBehavior", AdvancedBehavior.class);
-        event.add("EFBehaviorUtils", BehaviorsUtils.class);
+        event.add("EFBehavior", AdvancedBehaviorBuilder.class);
 
         event.add("AnimationMotionSet", AnimationMotionSet.class);
         event.add("GuardMotionSet", GuardMotionSet.class);

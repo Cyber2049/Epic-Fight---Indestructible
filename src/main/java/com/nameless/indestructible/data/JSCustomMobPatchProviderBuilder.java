@@ -4,7 +4,7 @@ package com.nameless.indestructible.data;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
 import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
-import com.nameless.indestructible.compat.kubejs.JsCustomHumanoidMobPatch;
+import com.nameless.indestructible.compat.kubejs.JsCustomMobPatch;
 import com.nameless.indestructible.main.Indestructible;
 import com.nameless.indestructible.world.ai.CombatBehaviors.GuardMotion;
 import net.minecraft.nbt.CompoundTag;
@@ -20,44 +20,44 @@ import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.entitypatch.EntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.Faction;
-import yesman.epicfight.world.capabilities.entitypatch.HumanoidMobPatch;
-import yesman.epicfight.world.capabilities.item.CapabilityItem;
-import yesman.epicfight.world.capabilities.item.Style;
-import yesman.epicfight.world.capabilities.item.WeaponCategory;
+import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-public class JSCustomHumanoidMobPatchProviderBuilder {
-    protected final JSCustomHumanoidMobPatchProvider provider = new JSCustomHumanoidMobPatchProvider();
+public class JSCustomMobPatchProviderBuilder {
+    protected final JSCustomMobPatchProvider provider = new JSCustomMobPatchProvider();
     private final CompoundTag clientTag = new CompoundTag();
     private final CompoundTag livingMotionTag = new CompoundTag();
     protected CompoundTag buildClientTag(){
-        this.clientTag.putBoolean("isHumanoid", true);
+        this.clientTag.putBoolean("isHumanoid", false);
         this.clientTag.put("default_livingmotions", this.livingMotionTag);
         return this.clientTag;
     }
     protected MobPatchReloadListener.AbstractMobPatchProvider build(){
         return this.provider;
     }
-    public static JSCustomHumanoidMobPatchProviderBuilder builder() {
-        return new JSCustomHumanoidMobPatchProviderBuilder();
+    public static JSCustomMobPatchProviderBuilder builder() {
+        return new JSCustomMobPatchProviderBuilder();
     }
 
-    public JSCustomHumanoidMobPatchProviderBuilder setModel(String model){
+    public JSCustomMobPatchProviderBuilder setModel(String model){
         this.clientTag.putString("model", model);
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setArmature(String armature){
+    public JSCustomMobPatchProviderBuilder setArmature(String armature){
         this.clientTag.putString("armature", armature);
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setRenderer(String renderer){
+    public JSCustomMobPatchProviderBuilder setRenderer(String renderer){
         this.clientTag.putString("renderer", renderer);
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setFaction(Object faction) {
+    public JSCustomMobPatchProviderBuilder setFaction(Object faction) {
         if(faction instanceof String string){
             this.provider.faction = Faction.valueOf(string.toUpperCase(Locale.ROOT));
             this.clientTag.putString("faction", string);
@@ -68,39 +68,39 @@ public class JSCustomHumanoidMobPatchProviderBuilder {
 
        return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder hasBossBar() {
+    public JSCustomMobPatchProviderBuilder hasBossBar() {
         provider.hasBossBar = true;
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setBossBarTexture(String rl) {
+    public JSCustomMobPatchProviderBuilder setBossBarTexture(String rl) {
         this.clientTag.putString("custom_texture", rl);
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setBossName(String langkey){
+    public JSCustomMobPatchProviderBuilder setBossName(String langkey){
         this.clientTag.putString("custom_name", langkey);
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setScale(float scale) {
+    public JSCustomMobPatchProviderBuilder setScale(float scale) {
         provider.scale = scale;
         CompoundTag att = new CompoundTag();
         att.putDouble("scale", scale);
         this.clientTag.put("attribute", att);
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setChasingSpeed(double speed) {
+    public JSCustomMobPatchProviderBuilder setChasingSpeed(double speed) {
         provider.chasingSpeed = speed;
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setGuardRadius(float guardRadius) {
+    public JSCustomMobPatchProviderBuilder setGuardRadius(float guardRadius) {
         provider.guardRadius = guardRadius;
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setAttackRadius(float attackRadius) {
+    public JSCustomMobPatchProviderBuilder setAttackRadius(float attackRadius) {
         provider.attackRadius = attackRadius;
         return this;
     }
 
-    public JSCustomHumanoidMobPatchProviderBuilder addAttribute(Object object, Double value){
+    public JSCustomMobPatchProviderBuilder addAttribute(Object object, Double value){
         if(object instanceof Attribute attribute){
             this.provider.attributeValues.put(attribute, value);
         } else if (object instanceof String string) {
@@ -111,35 +111,35 @@ public class JSCustomHumanoidMobPatchProviderBuilder {
         } else Indestructible.LOGGER.info(object + " can't be recognized");
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder addAttributesByMap(Map<Attribute, Double> map) {
+    public JSCustomMobPatchProviderBuilder addAttributesByMap(Map<Attribute, Double> map) {
         this.provider.attributeValues.putAll(map);
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setRegenStaminaStandbyTime(int tick) {
+    public JSCustomMobPatchProviderBuilder setRegenStaminaStandbyTime(int tick) {
         provider.regenStaminaStandbyTime = tick;
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder hasStunReduction(boolean reduce) {
+    public JSCustomMobPatchProviderBuilder hasStunReduction(boolean reduce) {
         provider.hasStunReduction = reduce;
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setMaxStunShield(float maxStunShield) {
+    public JSCustomMobPatchProviderBuilder setMaxStunShield(float maxStunShield) {
         provider.maxStunShield = maxStunShield;
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setReganShieldMultiply(float reganShieldMultiply) {
+    public JSCustomMobPatchProviderBuilder setReganShieldMultiply(float reganShieldMultiply) {
         provider.reganShieldMultiply = reganShieldMultiply;
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setReganShieldStandByTime(int reganShieldStandbyTime) {
+    public JSCustomMobPatchProviderBuilder setReganShieldStandByTime(int reganShieldStandbyTime) {
         provider.reganShieldStandbyTime = reganShieldStandbyTime;
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder setStaminaLoseMultiply(float staminaLoseMultiply) {
+    public JSCustomMobPatchProviderBuilder setStaminaLoseMultiply(float staminaLoseMultiply) {
         provider.staminaLoseMultiply = staminaLoseMultiply;
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder addLivingAnimation(Object object1, Object object2) {
+    public JSCustomMobPatchProviderBuilder addLivingAnimation(Object object1, Object object2) {
         LivingMotion livingMotion = null;
         StaticAnimation animation = null;
 
@@ -161,12 +161,12 @@ public class JSCustomHumanoidMobPatchProviderBuilder {
         }
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder addLivingAnimationByList(List<Pair<LivingMotion, StaticAnimation>> list) {
+    public JSCustomMobPatchProviderBuilder addLivingAnimationByList(List<Pair<LivingMotion, StaticAnimation>> list) {
         provider.defaultAnimations.addAll(list);
         list.forEach(l -> this.livingMotionTag.putString(l.getFirst().toString(), l.getSecond().getRegistryName().toString()));
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder initLivingAnimationByDefaultPresent(){
+    public JSCustomMobPatchProviderBuilder initLivingAnimationByDefaultPresent(){
         List<Pair<LivingMotion, StaticAnimation>> list = new ArrayList<>();
         list.add(Pair.of(LivingMotions.IDLE, Animations.BIPED_IDLE));
         list.add(Pair.of(LivingMotions.WALK, Animations.BIPED_WALK));
@@ -176,31 +176,11 @@ public class JSCustomHumanoidMobPatchProviderBuilder {
         list.add(Pair.of(LivingMotions.DEATH, Animations.BIPED_DEATH));
         return this.addLivingAnimationByList(list);
     }
-    public JSCustomHumanoidMobPatchProviderBuilder addHumanoidWeaponMotion(String[] categories, String style, List<Pair<LivingMotion, StaticAnimation>> list){
-        List<WeaponCategory> weaponCategories = new ArrayList<>();
-        Arrays.stream(categories).forEach(string -> weaponCategories.add(CapabilityItem.WeaponCategories.valueOf(string.toUpperCase(Locale.ROOT))));
-        Map<Style, Set<Pair<LivingMotion, StaticAnimation>>> map = new HashMap<>();
-        map.put(CapabilityItem.Styles.valueOf(style.toUpperCase(Locale.ROOT)), new HashSet<>(list));
-        weaponCategories.forEach(w -> this.provider.AHWeaponMotions.put(w, map));
+    public JSCustomMobPatchProviderBuilder setGuardMotion(GuardMotion guardMotions) {
+        provider.defaultGuardMotion = guardMotions;
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder addHumanoidWeaponMotionByMap(Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, StaticAnimation>>>> motions) {
-        provider.AHWeaponMotions.putAll(motions);
-        return this;
-    }
-    public JSCustomHumanoidMobPatchProviderBuilder addHumanoidGuardMotion(String[] categories, String style, GuardMotion motion){
-        List<WeaponCategory> weaponCategories = new ArrayList<>();
-        Arrays.stream(categories).forEach(string -> weaponCategories.add(CapabilityItem.WeaponCategories.valueOf(string.toUpperCase(Locale.ROOT))));
-        Map<Style, GuardMotion> map = Maps.newHashMap();
-        map.put(CapabilityItem.Styles.valueOf(style.toUpperCase(Locale.ROOT)), motion);
-        weaponCategories.forEach(w -> this.provider.guardMotions.put(w, map));
-        return this;
-    }
-    public JSCustomHumanoidMobPatchProviderBuilder addHumanoidGuardMotionByMap(Map<WeaponCategory, Map<Style, GuardMotion>> guardMotions) {
-        provider.guardMotions.putAll(guardMotions);
-        return this;
-    }
-    public JSCustomHumanoidMobPatchProviderBuilder addStunAnimation(Object object1, Object object2){
+    public JSCustomMobPatchProviderBuilder addStunAnimation(Object object1, Object object2){
         StunType stunType = null;
         StaticAnimation animation = null;
         if(object1 instanceof StunType t){
@@ -217,11 +197,11 @@ public class JSCustomHumanoidMobPatchProviderBuilder {
         if(stunType != null && animation != null)this.provider.stunAnimations.put(stunType, animation);
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder addStunAnimationByMap(Map<StunType, StaticAnimation> stunAnimations) {
+    public JSCustomMobPatchProviderBuilder addStunAnimationByMap(Map<StunType, StaticAnimation> stunAnimations) {
         provider.stunAnimations.putAll(stunAnimations);
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder intiStunAnimationByDefaultPresent(){
+    public JSCustomMobPatchProviderBuilder intiStunAnimationByDefaultPresent(){
         Map<StunType, StaticAnimation> map = Maps.newHashMap();
         map.put(StunType.SHORT, Animations.BIPED_HIT_SHORT);
         map.put(StunType.LONG, Animations.BIPED_HIT_LONG);
@@ -231,30 +211,22 @@ public class JSCustomHumanoidMobPatchProviderBuilder {
         this.addStunAnimationByMap(map);
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder addStunEvents(LivingEntityPatchEvent.StunEvent[] stunEvent) {
+    public JSCustomMobPatchProviderBuilder addStunEvents(LivingEntityPatchEvent.StunEvent[] stunEvent) {
         provider.stunEvent.addAll(List.of(stunEvent));
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder addStunEvent(LivingEntityPatchEvent.StunEvent stunEvent) {
+    public JSCustomMobPatchProviderBuilder addStunEvent(LivingEntityPatchEvent.StunEvent stunEvent) {
         provider.stunEvent.add(stunEvent);
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder addCombatBehavior(String[] categories, String style, CombatBehaviors.Builder<HumanoidMobPatch<?>> builder){
-        List<WeaponCategory> weaponCategories = new ArrayList<>();
-        Arrays.stream(categories).forEach(string -> weaponCategories.add(CapabilityItem.WeaponCategories.valueOf(string.toUpperCase(Locale.ROOT))));
-        Map<Style, CombatBehaviors.Builder<HumanoidMobPatch<?>>> map = Maps.newHashMap();
-        map.put(CapabilityItem.Styles.valueOf(style.toUpperCase(Locale.ROOT)), builder);
-        weaponCategories.forEach(w -> this.provider.AHCombatBehaviors.put(w, map));
+    public JSCustomMobPatchProviderBuilder setCombatBehavior(CombatBehaviors.Builder<MobPatch<?>> behaviors) {
+        provider.combatBehaviorsBuilder = behaviors;
         return this;
     }
-    public JSCustomHumanoidMobPatchProviderBuilder addCombatBehaviorByMap(Map<WeaponCategory, Map<Style, CombatBehaviors.Builder<HumanoidMobPatch<?>>>> behaviors) {
-        provider.AHCombatBehaviors.putAll(behaviors);
-        return this;
-    }
-    public static class JSCustomHumanoidMobPatchProvider extends AdvancedMobpatchReloader.AdvancedCustomHumanoidMobPatchProvider {
+    public static class JSCustomMobPatchProvider extends AdvancedMobpatchReloader.AdvancedCustomMobPatchProvider {
         @SuppressWarnings("rawtypes") @Override
         public EntityPatch<?> get(Entity entity) {
-            return new JsCustomHumanoidMobPatch(faction, this);
+            return new JsCustomMobPatch(faction, this);
         }
     }
 }

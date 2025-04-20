@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class AttributeMapHelper {
     private final Map<Attribute, Double> attributeMap = Maps.newHashMap();
-    public static AttributeMapHelper getInstance() {
+    public static AttributeMapHelper getHelper() {
         return new AttributeMapHelper();
     }
     public AttributeMapHelper addAttribute(Object object, Double value){

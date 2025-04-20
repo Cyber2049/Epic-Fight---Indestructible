@@ -27,8 +27,8 @@ public class SelfStamina extends EntityPatchCondition {
 
 	public SelfStamina() {}
 
-	public SelfStamina(float health, HealthPoint.Comparator comparator) {
-		this.value = health;
+	public SelfStamina(float stamina, HealthPoint.Comparator comparator) {
+		this.value = stamina;
 		this.comparator = comparator;
 	}
 	

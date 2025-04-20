@@ -10,7 +10,7 @@ import java.util.*;
 
 public class HumanoidGuardMotionHelper {
     private final Map<WeaponCategory, Map<Style, GuardMotion>> Map = new HashMap<>();
-    public static HumanoidGuardMotionHelper getInstance(){
+    public static HumanoidGuardMotionHelper getHelper(){
         return new HumanoidGuardMotionHelper();
     }
     public HumanoidGuardMotionHelper addGuardMotions(String[] categories, String style, GuardMotion motion){

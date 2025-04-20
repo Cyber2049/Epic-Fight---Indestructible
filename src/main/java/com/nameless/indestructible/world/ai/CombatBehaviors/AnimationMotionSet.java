@@ -1,6 +1,8 @@
 package com.nameless.indestructible.world.ai.CombatBehaviors;
 
 import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
+import com.nameless.indestructible.main.Indestructible;
+import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 
 import java.util.ArrayList;
@@ -23,7 +25,13 @@ public class AnimationMotionSet {
         this.stamina = stamina;
     }
 
-    public static AnimationMotionSet create(StaticAnimation animation) {
+    public static AnimationMotionSet create(Object object) {
+        StaticAnimation animation = null;
+        if(object instanceof StaticAnimation a){
+            animation = a;
+        } else if(object instanceof String s){
+            animation = AnimationManager.getInstance().byKeyOrThrow(s);
+        }  else Indestructible.LOGGER.info(object + " can't be recognized");
         return new AnimationMotionSet(animation, 0F, 1F, 0F);
     }
 

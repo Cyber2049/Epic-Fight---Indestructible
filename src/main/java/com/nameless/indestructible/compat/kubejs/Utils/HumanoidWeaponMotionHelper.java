@@ -11,7 +11,7 @@ import java.util.*;
 
 public class HumanoidWeaponMotionHelper {
     private final Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, StaticAnimation>>>> Map = new HashMap<>();
-    public static HumanoidWeaponMotionHelper getInstance(){
+    public static HumanoidWeaponMotionHelper getHelper(){
         return new HumanoidWeaponMotionHelper();
     }
 

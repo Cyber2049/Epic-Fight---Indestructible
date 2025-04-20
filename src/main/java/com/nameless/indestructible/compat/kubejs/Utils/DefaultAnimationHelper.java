@@ -13,7 +13,7 @@ import java.util.Locale;
 
 public class DefaultAnimationHelper {
     private final List<Pair<LivingMotion, StaticAnimation>> living_animation_list = new ArrayList<>();
-    public static DefaultAnimationHelper getInstance(){
+    public static DefaultAnimationHelper getHelper(){
         return new DefaultAnimationHelper();
     }
     public DefaultAnimationHelper addLivingAnimation(Object object1, Object object2){

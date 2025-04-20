@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class StunAnimationHelper {
     private final Map<StunType, StaticAnimation> stunAnimationMap = Maps.newHashMap();
-    public static StunAnimationHelper getInstance() {
+    public static StunAnimationHelper getHelper() {
         return new StunAnimationHelper();
     }
     public StunAnimationHelper addStunAnimation(Object object1, Object object2){

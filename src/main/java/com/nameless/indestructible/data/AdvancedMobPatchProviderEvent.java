@@ -1,7 +1,5 @@
-package com.nameless.indestructible.compat.kubejs;
+package com.nameless.indestructible.data;
 
-import com.nameless.indestructible.data.AdvancedMobpatchReloader;
-import com.nameless.indestructible.data.JSCustomHumanoidMobPatchProviderBuilder;
 import dev.latvian.mods.kubejs.event.EventJS;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
