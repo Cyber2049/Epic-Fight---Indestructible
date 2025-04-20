@@ -11,9 +11,9 @@ import com.nameless.indestructible.command.AHPatchSetPhaseCommand;
 import com.nameless.indestructible.data.AdvancedMobpatchReloader;
 import com.nameless.indestructible.data.ExtraConditions;
 import com.nameless.indestructible.gameasset.GuardAnimations;
-import com.nameless.indestructible.network.SPCancelBossInfo;
-import com.nameless.indestructible.network.SPDatapackSync;
 import com.nameless.indestructible.server.CommonConfig;
+import com.nameless.indestructible.server.network.SPCancelBossInfo;
+import com.nameless.indestructible.server.network.SPDatapackSync;
 import com.nameless.indestructible.world.capability.Utils.IBossEventCapability;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -26,6 +26,7 @@ import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -58,7 +59,7 @@ public class Indestructible {
         bus.addListener(GuardAnimations::registerAnimations);
         bus.addListener(this::doCommonStuff);
         bus.addListener(this::doClientStuff);
-        MinecraftForge.EVENT_BUS.addListener(this::reloadListnerEvent);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOW, this::reloadListnerEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onDatapackSync);
         MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
         MinecraftForge.EVENT_BUS.addListener(this::stopTrackingEvent);
@@ -73,7 +74,6 @@ public class Indestructible {
         MinecraftForge.EVENT_BUS.register(new BossBarGUi());
         cancelBossBar.addAll(UIConfig.BOSS_NAME.get());
     }
-
     private void reloadListnerEvent(final AddReloadListenerEvent event) {
         event.addListener(new AdvancedMobpatchReloader());
         StaticAnimationProvider[] providers = new StaticAnimationProvider[CommonConfig.NEUTRALIZE_ANIMATION.get().size()];

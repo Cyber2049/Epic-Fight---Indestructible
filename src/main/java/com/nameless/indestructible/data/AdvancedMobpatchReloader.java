@@ -1,6 +1,5 @@
 package com.nameless.indestructible.data;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -8,9 +7,12 @@ import com.google.gson.JsonElement;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
 import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
+import com.nameless.indestructible.compat.kubejs.AdvancedMobPatchProviderEvent;
+import com.nameless.indestructible.compat.kubejs.PatchJSPlugin;
 import com.nameless.indestructible.gameasset.GuardAnimations;
 import com.nameless.indestructible.main.Indestructible;
-import com.nameless.indestructible.network.SPDatapackSync;
+import com.nameless.indestructible.server.network.SPDatapackSync;
+import com.nameless.indestructible.world.ai.CombatBehaviors.*;
 import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
 import com.nameless.indestructible.world.capability.AdvancedCustomMobPatch;
 import net.minecraft.client.Minecraft;
@@ -26,7 +28,9 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.commons.compress.utils.Lists;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.LivingMotion;
 import yesman.epicfight.api.animation.types.StaticAnimation;
@@ -39,6 +43,7 @@ import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.mesh.HumanoidMesh;
 import yesman.epicfight.data.conditions.Condition;
+import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.gameasset.Armatures;
 import yesman.epicfight.gameasset.EpicFightSounds;
 import yesman.epicfight.main.EpicFightMod;
@@ -56,22 +61,32 @@ import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
 import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
-import static com.nameless.indestructible.world.capability.Utils.BehaviorsUtils.*;
 import static yesman.epicfight.api.data.reloader.MobPatchReloadListener.*;
 
 public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = (new GsonBuilder()).create();
     private static final Map<EntityType<?>, CompoundTag> TAGMAP = Maps.newHashMap();
     private static final Map<EntityType<?>, MobPatchReloadListener.AbstractMobPatchProvider> ADVANCED_MOB_PATCH_PROVIDERS = Maps.newHashMap();
+    public static void addProvider(EntityType<?> entityType, MobPatchReloadListener.AbstractMobPatchProvider provider){
+        ADVANCED_MOB_PATCH_PROVIDERS.put(entityType, provider);
+        EntityPatchProvider.putCustomEntityPatch(entityType, (entity) -> () -> ADVANCED_MOB_PATCH_PROVIDERS.get(entity.getType()).get(entity));
+    }
+    public static void addClientTag(EntityType<?> entityType, CompoundTag tag){
+        TAGMAP.put(entityType, tag);
+    }
+
 
     public AdvancedMobpatchReloader() {
         super(GSON, "advanced_mobpatch");
+    }
+    @Override
+    protected Map<ResourceLocation, JsonElement> prepare(ResourceManager resourceManager, ProfilerFiller profileIn) {
+        ADVANCED_MOB_PATCH_PROVIDERS.clear();
+        TAGMAP.clear();
+        return super.prepare(resourceManager, profileIn);
     }
 
     @Override
@@ -104,6 +119,10 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                 ClientEngine.getInstance().renderEngine.registerCustomEntityRenderer(entityType, tag.contains("preset") ? tag.getString("preset") : tag.getString("renderer"),tag);
             }
         }
+        if(ModList.get().isLoaded("kubejs")){
+            AdvancedMobPatchProviderEvent event = new AdvancedMobPatchProviderEvent();
+            PatchJSPlugin.REGISTRY.post(event);
+        }
 
     }
     public static AbstractMobPatchProvider deserializePatchProvider(EntityType<?> entityType, CompoundTag tag, boolean clientSide, ResourceManager resourceManager){
@@ -119,15 +138,14 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
 
         if (EpicFightMod.isPhysicalClient()) {
             Meshes.getOrCreateAnimatedMesh(Minecraft.getInstance().getResourceManager(), modelLocation, HumanoidMesh::new);
+            provider.name = tag.contains("boss_bar") && tag.contains("custom_name") ? tag.getString("custom_name") : null;
+            provider.bossBar = tag.contains("boss_bar") && tag.contains("custom_texture") ? ResourceLocation.tryParse(tag.getString("custom_texture")) : null;
         }
 
         Armature armature = Armatures.getOrCreateArmature(resourceManager, armatureLocation, HumanoidArmature::new);
         Armatures.registerEntityTypeArmature(entityType, armature);
 
         provider.hasBossBar = tag.contains("boss_bar") && tag.getBoolean("boss_bar");
-        provider.name = tag.contains("boss_bar") && tag.contains("custom_name") ? tag.getString("custom_name") : null;
-        provider.bossBar = tag.contains("boss_bar") && tag.contains("custom_texture") ? ResourceLocation.tryParse(tag.getString("custom_texture")) : null;
-
 
         provider.defaultAnimations = deserializeDefaultAnimations(tag.getCompound("default_livingmotions"));
         provider.faction = Faction.valueOf(tag.getString("faction").toUpperCase(Locale.ROOT));
@@ -169,20 +187,17 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
 
             if (EpicFightMod.isPhysicalClient()) {
                 Meshes.getOrCreateAnimatedMesh(Minecraft.getInstance().getResourceManager(), modelLocation, HumanoidMesh::new);
+                provider.name = tag.contains("boss_bar") && tag.contains("custom_name") ? tag.getString("custom_name") : null;
+                provider.bossBar = tag.contains("boss_bar") && tag.contains("custom_texture") ? ResourceLocation.tryParse(tag.getString("custom_texture")) : null;
             }
 
             Armature armature = Armatures.getOrCreateArmature(resourceManager, armatureLocation, HumanoidArmature::new);
             Armatures.registerEntityTypeArmature(entityType, armature);
 
             provider.hasBossBar = tag.contains("boss_bar") && tag.getBoolean("boss_bar");
-            provider.name = tag.contains("boss_bar") && tag.contains("custom_name") ? tag.getString("custom_name") : null;
-            provider.bossBar = tag.contains("boss_bar") && tag.contains("custom_texture") ? ResourceLocation.tryParse(tag.getString("custom_texture")) : null;
-
-
             provider.defaultAnimations = deserializeDefaultAnimations(tag.getCompound("default_livingmotions"));
             provider.faction = Faction.valueOf(tag.getString("faction").toUpperCase(Locale.ROOT));
             provider.scale = tag.getCompound("attributes").contains("scale") ? (float)tag.getCompound("attributes").getDouble("scale") : 1.0F;
-            provider.maxStunShield = tag.getCompound("attributes").contains("max_stun_shield") ? (float)tag.getCompound("attributes").getDouble("max_stun_shield") : 0F;
             if (tag.contains("swing_sound")) {
                 provider.swingSound = ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation(tag.getString("swing_sound")));
             }
@@ -202,6 +217,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
                 provider.guardMotions = deserializeHumanoidGuardMotions(tag.getList("custom_guard_motion",10));
                 provider.regenStaminaStandbyTime = tag.getCompound("attributes").contains("stamina_regan_delay") ? tag.getCompound("attributes").getInt("stamina_regan_delay") : 30;
                 provider.hasStunReduction = !tag.getCompound("attributes").contains("has_stun_reduction") || tag.getCompound("attributes").getBoolean("has_stun_reduction");
+                provider.maxStunShield = tag.getCompound("attributes").contains("max_stun_shield") ? (float)tag.getCompound("attributes").getDouble("max_stun_shield") : 0F;
                 provider.reganShieldStandbyTime = tag.getCompound("attributes").contains("stun_shield_regan_delay") ? tag.getCompound("attributes").getInt("stun_shield_regan_delay") : 30;
                 provider.reganShieldMultiply = tag.getCompound("attributes").contains("stun_shield_regan_multiply") ? (float)tag.getCompound("attributes").getDouble("stun_shield_multiply") : 1F;
                 provider.staminaLoseMultiply = tag.getCompound("attributes").contains("stamina_lose_multiply") ? (float)tag.getCompound("attributes").getDouble("stamina_lose_multiply") : 0F;
@@ -214,8 +230,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
 
     public static CompoundTag filterClientData(CompoundTag tag) {
         CompoundTag clientTag = new CompoundTag();
-        extractBranch(clientTag, tag);
-        return clientTag;
+        return extractBranch(clientTag, tag);
     }
 
     public static CompoundTag extractBranch(CompoundTag extract, CompoundTag original) {
@@ -263,26 +278,26 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
     }
 
     public static class AdvancedCustomMobPatchProvider extends MobPatchReloadListener.AbstractMobPatchProvider {
-        protected Faction faction;
+        protected Faction faction = Faction.NEUTRAL;
         protected CombatBehaviors.Builder<MobPatch<?>> combatBehaviorsBuilder;
-        protected int regenStaminaStandbyTime;
-        protected boolean hasStunReduction;
-        protected float maxStunShield;
-        protected int reganShieldStandbyTime;
-        protected float reganShieldMultiply;
-        protected float staminaLoseMultiply;
-        protected float guardRadius;
-        protected float attackRadius;
-        protected List<Pair<LivingMotion, StaticAnimation>> defaultAnimations;
-        protected Map<StunType, StaticAnimation> stunAnimations;
-        protected Map<Attribute, Double> attributeValues;
-        protected double chasingSpeed;
-        protected float scale;
-        protected boolean hasBossBar;
+        protected int regenStaminaStandbyTime = 30;
+        protected boolean hasStunReduction = true;
+        protected float maxStunShield = 0;
+        protected int reganShieldStandbyTime = 30;
+        protected float reganShieldMultiply = 1;
+        protected float staminaLoseMultiply = 0;
+        protected float guardRadius = 3F;
+        protected float attackRadius = 1.5F;
+        protected List<Pair<LivingMotion, StaticAnimation>> defaultAnimations = new ArrayList<>();
+        protected Map<StunType, StaticAnimation> stunAnimations = Maps.newHashMap();
+        protected Map<Attribute, Double> attributeValues = Maps.newHashMap();
+        protected double chasingSpeed = 1;
+        protected float scale = 1;
+        protected boolean hasBossBar = false;
         protected ResourceLocation bossBar;
         protected String name;
         protected GuardMotion defaultGuardMotion;
-        protected List<LivingEntityPatchEvent.StunEvent> stunEvent;
+        protected List<LivingEntityPatchEvent.StunEvent> stunEvent = new ArrayList<>();
         public AdvancedCustomMobPatchProvider(){}
         @SuppressWarnings("rawtypes")
         public EntityPatch<?> get(Entity entity) {
@@ -291,15 +306,12 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         public List<Pair<LivingMotion, StaticAnimation>> getDefaultAnimations() {
             return this.defaultAnimations;
         }
-
         public Map<StunType, StaticAnimation> getStunAnimations() {
             return this.stunAnimations;
         }
-
         public Map<Attribute, Double> getAttributeValues() {
             return this.attributeValues;
         }
-
         public double getChasingSpeed() {
             return this.chasingSpeed;
         }
@@ -347,9 +359,9 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
 
 
     public static class AdvancedCustomHumanoidMobPatchProvider extends AdvancedCustomMobPatchProvider {
-        protected Map<WeaponCategory, Map<Style, CombatBehaviors.Builder<HumanoidMobPatch<?>>>> AHCombatBehaviors;
-        protected Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, StaticAnimation>>>> AHWeaponMotions;
-        protected Map<WeaponCategory, Map<Style, GuardMotion>> guardMotions;
+        protected Map<WeaponCategory, Map<Style, CombatBehaviors.Builder<HumanoidMobPatch<?>>>> AHCombatBehaviors = Maps.newHashMap();
+        protected Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, StaticAnimation>>>> AHWeaponMotions = Maps.newHashMap();
+        protected Map<WeaponCategory, Map<Style, GuardMotion>> guardMotions = Maps.newHashMap();
         public AdvancedCustomHumanoidMobPatchProvider() {
         }
 
@@ -403,22 +415,6 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
 
         return combatBehaviorsMapBuilder;
     }
-    public static GuardMotion deserializeGuardMotions(CompoundTag tag){
-        StaticAnimation guard = tag.contains("guard") ? AnimationManager.getInstance().byKeyOrThrow(tag.getString("guard")) : GuardAnimations.MOB_LONGSWORD_GUARD;
-        float guard_cost = tag.contains("stamina_cost_multiply") ? (float)tag.getDouble("stamina_cost_multiply") : 1F;
-        boolean canBlockProjectile = tag.contains("can_block_projectile") && tag.getBoolean("can_block_projectile");
-        float parry_cost = tag.contains("parry_cost_multiply") ? (float)tag.getDouble("parry_cost_multiply") : 0.5F;
-        StaticAnimation[] parry_animations = null;
-        if(tag.contains("parry_animation")){
-            ListTag animationId = tag.getList("parry_animation", 8);
-            parry_animations = new StaticAnimation[animationId.size()];
-            for (int j = 0; j < animationId.size(); j++) {
-                StaticAnimation parry_animation = AnimationManager.getInstance().byKeyOrThrow(animationId.getString(j));
-                parry_animations[j] = parry_animation;
-            }
-        }
-        return new GuardMotion(guard, canBlockProjectile, guard_cost, parry_cost, parry_animations);
-    }
 
     public static Map<WeaponCategory, Map<Style, GuardMotion>> deserializeHumanoidGuardMotions(ListTag tag){
         Map<WeaponCategory, Map<Style,GuardMotion>> map = Maps.newHashMap();
@@ -426,23 +422,8 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         for (int i = 0; i < tag.size(); i++) {
             CompoundTag list = tag.getCompound(i);
             Style style = Style.ENUM_MANAGER.get(list.getString("style"));
-            StaticAnimation guard = list.contains("guard") ? AnimationManager.getInstance().byKeyOrThrow(list.getString("guard")) : GuardAnimations.MOB_LONGSWORD_GUARD;
-            float guard_cost = list.contains("stamina_cost_multiply") ? (float)list.getDouble("stamina_cost_multiply") : 1F;
-            boolean canBlockProjectile = list.contains("can_block_projectile") && list.getBoolean("can_block_projectile");
-            float parry_cost = list.contains("parry_cost_multiply") ? (float)list.getDouble("parry_cost_multiply") : 0.5F;
-            StaticAnimation[] parry_animations = null;
-            if(list.contains("parry_animation")){
-                ListTag animationId = list.getList("parry_animation", 8);
-                parry_animations = new StaticAnimation[animationId.size()];
-                for (int j = 0; j < animationId.size(); j++) {
-                    StaticAnimation parry_animation = AnimationManager.getInstance().byKeyOrThrow(animationId.getString(j));
-                    parry_animations[j] = parry_animation;
-                }
-            }
-
+            GuardMotion guardMotion = deserializeGuardMotions(list);
             Tag weponTypeTag = list.get("weapon_categories");
-
-            GuardMotion guardMotion = new GuardMotion(guard, canBlockProjectile, guard_cost, parry_cost, parry_animations);
             if (weponTypeTag instanceof StringTag) {
                 WeaponCategory weaponCategory = WeaponCategory.ENUM_MANAGER.get(weponTypeTag.getAsString());
                 if (!map.containsKey(weaponCategory)) {
@@ -478,40 +459,48 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
             behaviorSeriesBuilder.weight(weight).cooldown(cooldown).canBeInterrupted(canBeInterrupted).looping(looping);
 
             for (int j = 0; j < behaviorList.size(); j++) {
-                CombatBehaviors.Behavior.Builder<T> behaviorBuilder = CombatBehaviors.Behavior.builder();
+                //CombatBehaviors.Behavior.Builder<T> behaviorBuilder = CombatBehaviors.Behavior.builder();
+                AdvancedBehavior<T> behaviorBuilder = new AdvancedBehavior<>();
                 CompoundTag behavior = behaviorList.getCompound(j);
                 ListTag conditionList = behavior.getList("conditions", 10);
                 int phase = behavior.contains("set_phase") ? behavior.getInt("set_phase") : -1;
                 int hurt_level = behavior.contains("end_by_hurt_level") ? behavior.getInt("end_by_hurt_level") : 2;
                 if(behavior.contains("animation")) {
                     StaticAnimation animation = AnimationManager.getInstance().byKeyOrThrow(behavior.getString("animation"));
-                    float speed = behavior.contains("play_speed") ? (float) behavior.getDouble("play_speed") : 1F;
-                    float stamina = behavior.contains("stamina") ? (float) behavior.getDouble("stamina") : 0F;
-                    float convertTime = behavior.contains("convert_time") ? (float)behavior.getDouble("convert_time") : 0F;
-                    CustomAnimationMotion motion = new CustomAnimationMotion(animation,convertTime,speed,stamina);
-                    List<LivingEntityPatchEvent.TimeStampedEvent> timeCommandList = behavior.contains("command_list") ? deserializeTimeCommandList(behavior.getList("command_list", 10)) : null;
-                    List<LivingEntityPatchEvent.BiEvent> hitCommandList = behavior.contains("hit_command_list") ? deserializeHitCommandList(behavior.getList("hit_command_list", 10)) : null;
-                    DamageSourceModifier modifier = behavior.contains("damage_modifier") ? deserializeDamageModifier(behavior.getCompound("damage_modifier")) : null;
-                    List<LivingEntityPatchEvent.BlockedEvent> blockedEvents = behavior.contains("blocked_command_list") ? deserializeBlockedCommandList(behavior.getList("blocked_command_list",10)) : null;
-                    behaviorBuilder.behavior(customAttackAnimation(motion, modifier, timeCommandList, hitCommandList, blockedEvents, phase, hurt_level));
+                    AnimationMotionSet motionSet = new AnimationMotionSet(animation, 0F, 1F,0F);
+                    motionSet = behavior.contains("play_speed") ? motionSet.setSpeed ((float) behavior.getDouble("play_speed")) : motionSet;
+                    motionSet = behavior.contains("stamina") ? motionSet.setStaminaCost((float) behavior.getDouble("stamina")) : motionSet;
+                    motionSet = behavior.contains("convert_time") ? motionSet.setConvertTime((float)behavior.getDouble("convert_time")) : motionSet;
+                    motionSet = behavior.contains("damage_modifier") && !behavior.getCompound("damage_modifier").isEmpty() ? motionSet.setDamageSourceModifier(deserializeDamageModifier(behavior.getCompound("damage_modifier"))) : motionSet;
+                    motionSet = behavior.contains("command_list") && !behavior.getList("command_list", 10).isEmpty() ? motionSet.addTimeStampedEvents(deserializeTimeCommandList(behavior.getList("command_list", 10))) : motionSet;
+                    motionSet = behavior.contains("hit_command_list") && !behavior.getList("hit_command_list", 10).isEmpty() ?  motionSet.addHitEvents(deserializeHitCommandList(behavior.getList("hit_command_list", 10))) : motionSet;
+                    motionSet = behavior.contains("blocked_command_list") && !behavior.getList("blocked_command_list",10).isEmpty() ? motionSet.addBlockedEvents(deserializeBlockedCommandList(behavior.getList("blocked_command_list",10)) ) : motionSet;
+                    behaviorBuilder.customAttackAnimation(motionSet,hurt_level,phase);
+                    //behaviorBuilder.behavior(customAttackAnimation(motionSet, hurt_level, phase));
                 } else if (behavior.contains("guard")){
-                    int guardTime = behavior.getInt("guard");
-                    StaticAnimation counter = behavior.contains("counter") ? AnimationManager.getInstance().byKeyOrThrow(behavior.getString("counter")) : GuardAnimations.MOB_COUNTER_ATTACK;
-                    int parry_times = behavior.contains("parry_times") ? behavior.getInt("parry_times") : 0;
-                    int stun_immunity_time = behavior.contains("stun_immunity_time") ? behavior.getInt("stun_immunity_time") : 0;
-                    float cost = behavior.contains("counter_cost") ? (float) behavior.getDouble("counter_cost") : 3.0F;
-                    float chance = behavior.contains("counter_chance") ? (float)behavior.getDouble("counter_chance") : 0.3F;
-                    float speed = behavior.contains("counter_speed") ? (float)behavior.getDouble("counter_speed") : 1F;
-                    CounterMotion counterMotion = new CounterMotion(counter, cost, chance, speed);
-                    boolean cancel = !behavior.contains("cancel_after_counter") || behavior.getBoolean("cancel_after_counter");
-                    GuardMotion guardMotion = behavior.contains("specific_guard_motion") ? deserializeSpecificGuardMotion(behavior.getCompound("specific_guard_motion")) : null;
-                    behaviorBuilder.behavior(setGuardMotion(guardTime, parry_times, stun_immunity_time, counterMotion, cancel, guardMotion, phase, hurt_level));
+                    int guard_time = behavior.getInt("guard");
+                    GuardMotionSet motionSet = new GuardMotionSet(guard_time, 0, 0);
+                    CounterMotion counterMotion = new CounterMotion(GuardAnimations.MOB_COUNTER_ATTACK, 3F, 0.3F, 1F, 0F,true);
+                    motionSet = behavior.contains("parry_times") ? motionSet.setParryTimes(behavior.getInt("parry_times")) : motionSet;
+                    motionSet = behavior.contains("stun_immunity_time") ? motionSet.setStunImmunityTime(behavior.getInt("stun_immunity_time")) : motionSet;
+                    counterMotion = behavior.contains("counter") ? counterMotion.setCounterAnimation(behavior.getString("counter")) : counterMotion;
+                    counterMotion = behavior.contains("counter_cost") ? counterMotion.setCost((float) behavior.getDouble("counter_cost")) : counterMotion;
+                    counterMotion = behavior.contains("counter_chance") ? counterMotion.setChance((float)behavior.getDouble("counter_chance")) : counterMotion;
+                    counterMotion = behavior.contains("counter_speed") ? counterMotion.setSpeed((float)behavior.getDouble("counter_speed")) : counterMotion;
+                    counterMotion = behavior.contains("counter_convert_time") ? counterMotion.setConvertTime((float)behavior.getDouble("counter_convert_time")) : counterMotion;
+                    counterMotion = behavior.contains("cancel_after_counter") ? counterMotion.cancelBlock(behavior.getBoolean("cancel_after_counter")) : counterMotion;
+                    motionSet = motionSet.setCounterMotion(counterMotion);
+                    motionSet = behavior.contains("specific_guard_motion") ? motionSet.setSpecificGuardMotion(deserializeGuardMotions(behavior.getCompound("specific_guard_motion"))) : motionSet;
+                    behaviorBuilder.setGuardMotion(motionSet,phase,hurt_level);
+                    //behaviorBuilder.behavior(setGuardMotion(motionSet, phase, hurt_level));
                 } else if (behavior.contains("wander")){
                     int strafingTime = behavior.getInt("wander");
-                    int inactionTime = behavior.contains("inaction_time") ?  behavior.getInt("inaction_time") : behavior.getInt("wander");
-                    float forward = behavior.contains("z_axis") ? (float) behavior.getDouble("z_axis") : 0F;
-                    float clockwise = behavior.contains("x_axis") ? (float) behavior.getDouble("x_axis") : 0F;
-                    behaviorBuilder.behavior(setStrafing(strafingTime, inactionTime, forward, clockwise, phase, hurt_level));
+                    WanderMotionSet motionSet = new WanderMotionSet(strafingTime, strafingTime, 0,0);
+                    motionSet = behavior.contains("inaction_time") ?  motionSet.setInactionTime(behavior.getInt("inaction_time"))  : motionSet;
+                    motionSet = behavior.contains("z_axis") ? motionSet.setForwardDirection((float) behavior.getDouble("z_axis")) : motionSet;
+                    motionSet = behavior.contains("x_axis") ? motionSet.setClockwise ((float) behavior.getDouble("x_axis")) : motionSet;
+                    behaviorBuilder.setStrafing(motionSet,phase,hurt_level);
+                    //behaviorBuilder.behavior(setStrafing(motionSet, phase, hurt_level));
                 }
 
                 for (int k = 0; k < conditionList.size(); k++) {
@@ -529,47 +518,45 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         return builder;
     }
 
-    public static GuardMotion deserializeSpecificGuardMotion(CompoundTag args){
-        GuardMotion guardMotion = null;
-        if(args.contains("guard") && args.contains("stamina_cost_multiply") && args.contains("can_block_projectile") && args.contains("parry_cost_multiply") && args.contains("parry_animation")) {
-            StaticAnimation guard = AnimationManager.getInstance().byKeyOrThrow(args.getString("guard"));
-            float guard_cost = (float) args.getDouble("stamina_cost_multiply");
-            boolean canBlockProjectile = args.getBoolean("can_block_projectile");
-            float parry_cost = (float) args.getDouble("parry_cost_multiply");
-            StaticAnimation[] parry_animations = null;
-            if (args.contains("parry_animation")) {
-                ListTag animationId = args.getList("parry_animation", 8);
-                parry_animations = new StaticAnimation[animationId.size()];
-                for (int j = 0; j < animationId.size(); j++) {
-                    StaticAnimation parry_animation = AnimationManager.getInstance().byKeyOrThrow(animationId.getString(j));
-                    parry_animations[j] = parry_animation;
-                }
+    public static GuardMotion deserializeGuardMotions(CompoundTag args){
+        GuardMotion guardMotion = new GuardMotion(Animations.DUMMY_ANIMATION, false, 0F);
+        if(args.contains("guard")) guardMotion = guardMotion.setGuardAnimation(args.getString("guard"));
+        if(args.contains("stamina_cost_multiply")) guardMotion = guardMotion.setCost((float) args.getDouble("stamina_cost_multiply"));
+        if(args.contains("can_block_projectile")) guardMotion = guardMotion.canBlockProjectile(args.getBoolean("can_block_projectile"));
+        if(args.contains("parry_cost_multiply")) guardMotion = guardMotion.setParryCost((float) args.getDouble("parry_cost_multiply"));
+        if(args.contains("parry_animation")) {
+            StaticAnimation[] parry_animations;
+            ListTag animationId = args.getList("parry_animation", 8);
+            parry_animations = new StaticAnimation[animationId.size()];
+            for (int j = 0; j < animationId.size(); j++) {
+                StaticAnimation parry_animation = AnimationManager.getInstance().byKeyOrThrow(animationId.getString(j));
+                parry_animations[j] = parry_animation;
             }
-            guardMotion = new GuardMotion(guard, canBlockProjectile, guard_cost, parry_cost, parry_animations);
+            guardMotion =  guardMotion.setParryAnimations(parry_animations);
         }
         return guardMotion;
     }
 
 
 
-    public static List<LivingEntityPatchEvent.TimeStampedEvent> deserializeTimeCommandList(ListTag args){
-        List<LivingEntityPatchEvent.TimeStampedEvent> list = Lists.newArrayList();
+    public static LivingEntityPatchEvent.TimeStampedEvent[] deserializeTimeCommandList(ListTag args){
+        LivingEntityPatchEvent.TimeStampedEvent[] list = new LivingEntityPatchEvent.TimeStampedEvent[args.size()];
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
             boolean execute_at_target = command.contains("execute_at_target") && command.getBoolean("execute_at_target");
             LivingEntityPatchEvent.TimeStampedEvent event = LivingEntityPatchEvent.TimeStampedEvent.CreateTimeCommandEvent(command.getFloat("time"), command.getString("command"), execute_at_target);
-            list.add(event);
+            list[k] = event;
         }
         return list;
     }
 
-    public static List<LivingEntityPatchEvent.BiEvent> deserializeHitCommandList(ListTag args){
-        List<LivingEntityPatchEvent.BiEvent> list = Lists.newArrayList();
+    public static LivingEntityPatchEvent.BiEvent[] deserializeHitCommandList(ListTag args){
+        LivingEntityPatchEvent.BiEvent[] list = new LivingEntityPatchEvent.BiEvent[0];
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
             boolean execute_at_target = command.contains("execute_at_target") && command.getBoolean("execute_at_target");
             LivingEntityPatchEvent.BiEvent event = LivingEntityPatchEvent.BiEvent.CreateBiCommandEvent(command.getString("command"), execute_at_target);
-            list.add(event);
+            list[k] = event;
         }
         return list;
     }
@@ -585,13 +572,13 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         return list;
     }
 
-    public static List<LivingEntityPatchEvent.BlockedEvent> deserializeBlockedCommandList(ListTag args){
-        List<LivingEntityPatchEvent.BlockedEvent> list = Lists.newArrayList();
+    public static LivingEntityPatchEvent.BlockedEvent[] deserializeBlockedCommandList(ListTag args){
+        LivingEntityPatchEvent.BlockedEvent[] list = new LivingEntityPatchEvent.BlockedEvent[args.size()];
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
             boolean execute_at_target = command.contains("execute_at_target") && command.getBoolean("execute_at_target");
             LivingEntityPatchEvent.BlockedEvent event = LivingEntityPatchEvent.BlockedEvent.CreateBlockCommandEvent(command.getString("command"), execute_at_target, command.getBoolean("is_parry"));
-            list.add(event);
+            list[k] = event;
         }
         return list;
     }
@@ -600,9 +587,10 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
         float damage = args.contains("damage") ? args.getFloat("damage") : 1F;
         float impact = args.contains("impact") ? args.getFloat("impact") : 1F;
         float armor_negation = args.contains("armor_negation") ? args.getFloat("armor_negation") : 1F;
-        StunType stunType = args.contains("stun_type") ? StunType.valueOf(args.getString("stun_type").toUpperCase(Locale.ROOT)) : null;
-        Collider collider = args.contains("collider") ?  deserializeCollider(args.getCompound("collider")) : null;
-        return new DamageSourceModifier(damage, impact, armor_negation, stunType, collider);
+        DamageSourceModifier modifier = new DamageSourceModifier(damage, impact, armor_negation);
+        if(args.contains("stun_type")) modifier.setStunType(args.getString("stun_type").toUpperCase(Locale.ROOT));
+        if(args.contains("collider")) modifier.setCollider(deserializeCollider(args.getCompound("collider")));
+        return new DamageSourceModifier(damage, impact, armor_negation);
     }
 
     public static Collider deserializeCollider(CompoundTag tag) {

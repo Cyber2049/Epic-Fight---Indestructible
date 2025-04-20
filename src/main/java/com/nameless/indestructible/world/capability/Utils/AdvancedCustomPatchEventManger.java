@@ -39,7 +39,7 @@ public class AdvancedCustomPatchEventManger {
         return this.stunEvents;
     }
 
-    public boolean hasBlockEvents(){
+    public boolean hasBlockedEvents(){
         return !this.blockedEvents.isEmpty();
     }
 
@@ -57,9 +57,9 @@ public class AdvancedCustomPatchEventManger {
         }
     }
 
-    public void initAnimationEvent(){
+    public void initActiveEvent(){
         if (this.hasTimeEvent()) this.timeEvents.clear();
         if (this.hasHitEvent()) this.hitEvents.clear();
-        if(this.hasBlockEvents()) this.blockedEvents.clear();
+        if (this.hasBlockedEvents()) this.blockedEvents.clear();
     }
 }

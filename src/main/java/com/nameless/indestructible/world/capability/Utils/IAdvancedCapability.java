@@ -1,9 +1,7 @@
 package com.nameless.indestructible.world.capability.Utils;
 
 import com.nameless.indestructible.api.animation.types.CustomGuardAnimation;
-import com.nameless.indestructible.world.capability.Utils.BehaviorsUtils.CounterMotion;
-import com.nameless.indestructible.world.capability.Utils.BehaviorsUtils.DamageSourceModifier;
-import com.nameless.indestructible.world.capability.Utils.BehaviorsUtils.GuardMotion;
+import com.nameless.indestructible.world.ai.CombatBehaviors.*;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.world.damagesource.DamageSource;
@@ -40,7 +38,6 @@ public interface IAdvancedCapability {
     void setCounterMotion(CounterMotion counter_motion);
     void setMaxParryTimes(int times);
     boolean isParrying();
-    void cancelBlock(boolean cancel);
     void setStunImmunityTime(int tick);
     void setDamageSourceModifier(DamageSourceModifier damageSourceModifier);
     int getPhase();
@@ -55,4 +52,7 @@ public interface IAdvancedCapability {
     float getStrafingForward();
     float getStrafingClockwise();
     void setStrafingDirection(float forward, float clockwise);
+    void actAnimationMotion(AnimationMotionSet motionSet);
+    void actGuardMotion(GuardMotionSet motionSet);
+    void actStrafing(WanderMotionSet wanderMotionSet);
 }

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.nameless.indestructible.mixin.BehaviorSeriesMixin;
 import com.nameless.indestructible.mixin.CombatBehaviorsMixin;
 import com.nameless.indestructible.world.capability.Utils.IAdvancedCapability;
+import com.nameless.indestructible.world.capability.Utils.IAnimationEventCapability;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -47,6 +48,14 @@ public class AdvancedCombatBehavior<T extends MobPatch<?>> extends Behavior<Mob>
 					CombatBehaviors.Behavior<? super T> result = this.combatBehaviors.tryProceed();
 
 					if (result != null) {
+						iac.setDamageSourceModifier(null);
+						iac.setBlocking(false);
+						iac.setAttackSpeed(1F);
+						iac.setHurtResistLevel(2);
+
+						if(mobPatch instanceof IAnimationEventCapability iec){
+							iec.getEventManager().initActiveEvent();
+						}
 						result.execute(mobPatch);
 					}
 				}
@@ -55,6 +64,14 @@ public class AdvancedCombatBehavior<T extends MobPatch<?>> extends Behavior<Mob>
 					CombatBehaviors.Behavior<? super T> result = this.combatBehaviors.selectRandomBehaviorSeries();
 
 					if (result != null) {
+						iac.setDamageSourceModifier(null);
+						iac.setBlocking(false);
+						iac.setAttackSpeed(1F);
+						iac.setHurtResistLevel(2);
+
+						if(mobPatch instanceof IAnimationEventCapability iec){
+							iec.getEventManager().initActiveEvent();
+						}
 						result.execute(mobPatch);
 					}
 				}

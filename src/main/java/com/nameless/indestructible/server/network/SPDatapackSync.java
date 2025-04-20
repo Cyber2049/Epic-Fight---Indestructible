@@ -1,4 +1,4 @@
-package com.nameless.indestructible.network;
+package com.nameless.indestructible.server.network;
 
 import com.nameless.indestructible.data.AdvancedMobpatchReloader;
 import net.minecraft.nbt.CompoundTag;

@@ -1,4 +1,4 @@
-package com.nameless.indestructible.network;
+package com.nameless.indestructible.server.network;
 
 import com.nameless.indestructible.client.gui.BossBarGUi;
 import net.minecraft.network.FriendlyByteBuf;

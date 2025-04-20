@@ -41,7 +41,7 @@ public class AHPatchPlayAnimationCommand implements Command<CommandSourceStack> 
                 iac.setBlocking(false);
                 iac.setAttackSpeed(speed);
                 if(livingEntityPatch instanceof IAnimationEventCapability iec){
-                    iec.getEventManager().initAnimationEvent();
+                    iec.getEventManager().initActiveEvent();
                 }
                 livingEntityPatch.playAnimationSynchronized(animation, convert_time, SPPlayAnimation::new);
             } else livingEntityPatch.playAnimationSynchronized(animation, convert_time, SPPlayAnimation::new);

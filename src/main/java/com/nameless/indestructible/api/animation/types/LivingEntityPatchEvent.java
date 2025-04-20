@@ -5,35 +5,45 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
+import java.util.Locale;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class LivingEntityPatchEvent {
-	private final Consumer<LivingEntityPatch<?>> event;
-	public LivingEntityPatchEvent(Consumer<LivingEntityPatch<?>> event) {
-		this.event = event;
+	public static TimeStampedEvent createTimeStampedEvent(float time, Consumer<LivingEntityPatch<?>> event){
+		return new TimeStampedEvent(time, event);
 	}
-
-	public void testAndExecute(LivingEntityPatch<?> entitypatch) {
-		if(!entitypatch.isLogicalClient()) {
-			this.event.accept(entitypatch);
+	public static BiEvent createBiEvent(BiConsumer<LivingEntityPatch<?>, Entity> event){
+		return new BiEvent(event);
+	}
+	public static StunEvent createStunEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, Object object){
+		StunType stunType = StunType.NONE;
+		if(object instanceof String s){
+			stunType = StunType.valueOf(s.toUpperCase(Locale.ROOT));
+		} else if (object instanceof StunType t){
+			stunType = t;
 		}
+		return new StunEvent(event, stunType.ordinal());
 	}
-
+	public static BlockedEvent createBlockedEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, boolean isParry){
+		return new BlockedEvent(event, isParry);
+	}
 	public static class TimeStampedEvent extends LivingEntityPatchEvent implements Comparable<TimeStampedEvent> {
 		private final float time;
+		private final Consumer<LivingEntityPatch<?>> event;
 
 		public TimeStampedEvent(float time, Consumer<LivingEntityPatch<?>> event) {
-			super(event);
+			this.event = event;
 			this.time = time;
 		}
 
 		public void testAndExecute(LivingEntityPatch<?> entitypatch, float prevElapsed, float elapsed) {
-				if (this.time >= prevElapsed && this.time < elapsed) {
-					super.testAndExecute(entitypatch);
-				}
+			if(!entitypatch.isLogicalClient() && !entitypatch.isLogicalClient()) {
+				this.event.accept(entitypatch);
+			}
 		}
 
 		@Override
@@ -49,7 +59,11 @@ public class LivingEntityPatchEvent {
 				Level server = entitypatch.getOriginal().level();
 				CommandSourceStack css = entitypatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
 				if (isTarget && entitypatch.getTarget() != null) {
-					css = css.withEntity(entitypatch.getTarget());
+					LivingEntity target;
+					if(entitypatch instanceof MobPatch<?> mobPatch){
+						target = mobPatch.getTarget();
+					} else target = entitypatch.getTarget();
+					css = css.withEntity(target);
 				}
 				if(server.getServer() != null && entitypatch.getOriginal() != null){
 					server.getServer().getCommands().performPrefixedCommand(css,command);

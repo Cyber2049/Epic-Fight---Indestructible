@@ -1,6 +1,6 @@
 package com.nameless.indestructible.server;
 
-import com.nameless.indestructible.network.SPCancelBossInfo;
+import com.nameless.indestructible.server.network.SPCancelBossInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;

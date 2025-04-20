@@ -7,6 +7,7 @@ import com.nameless.indestructible.data.AdvancedMobpatchReloader;
 import com.nameless.indestructible.data.AdvancedMobpatchReloader.AdvancedCustomHumanoidMobPatchProvider;
 import com.nameless.indestructible.gameasset.GuardAnimations;
 import com.nameless.indestructible.server.AdvancedBossInfo;
+import com.nameless.indestructible.world.ai.CombatBehaviors.*;
 import com.nameless.indestructible.world.ai.goal.AdvancedChasingGoal;
 import com.nameless.indestructible.world.ai.goal.AdvancedCombatGoal;
 import com.nameless.indestructible.world.ai.goal.GuardGoal;
@@ -71,14 +72,14 @@ import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.nameless.indestructible.world.capability.Utils.BehaviorsUtils.*;
 import static com.nameless.indestructible.world.capability.Utils.CapabilityUtils.putEpicFightAttributes;
 
 public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends HumanoidMobPatch<T> implements IAdvancedCapability, IBossEventCapability, IAnimationEventCapability {
-    private final CapabilityState<HumanoidMobPatch<?>> capabilityState;
+    protected final CapabilityState<HumanoidMobPatch<?>, ?> capabilityState;
     private int convertTick = 0;
     private boolean isRunning = false;
     private AdvancedCustomPatchEventManger eventManger;
@@ -337,18 +338,35 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     }
 
     private GuardMotion getGuardMotion(CapabilityItem itemCap){
-        if(this.capabilityState.specificGuardMotion != null){
-            return this.capabilityState.specificGuardMotion;
-        }
-
+        GuardMotion motion = new GuardMotion(GuardAnimations.MOB_LONGSWORD_GUARD, false,1);
         if(this.weaponGuardMotions != null && itemCap != null){
             Style style = itemCap.getStyle(this);
             Map<Style, GuardMotion> mapByStyle = this.weaponGuardMotions.get(itemCap.getWeaponCategory());
             if (mapByStyle != null && (mapByStyle.containsKey(style) || mapByStyle.containsKey(CapabilityItem.Styles.COMMON))) {
-                return mapByStyle.getOrDefault(style, mapByStyle.get(CapabilityItem.Styles.COMMON));
+                motion = mapByStyle.getOrDefault(style, mapByStyle.get(CapabilityItem.Styles.COMMON));
             }
         }
-        return new GuardMotion(GuardAnimations.MOB_LONGSWORD_GUARD, false,1);
+
+        GuardMotion specific = this.capabilityState.specificGuardMotion;
+        if(specific != null){
+            Boolean[] b = this.capabilityState.specificGuardMotion.changeTag;
+            if(b[0]){
+                motion.guard_animation = specific.guard_animation;
+            }
+            if(b[1]){
+                motion.can_block_projectile = specific.can_block_projectile;
+            }
+            if(b[2]){
+                motion.cost = specific.cost;
+            }
+            if(b[3]){
+                motion.parry_cost = specific.parry_cost;
+            }
+            if(b[4]){
+                motion.parry_animation = specific.parry_animation;
+            }
+        }
+        return motion;
     }
 
     @Override
@@ -415,7 +433,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     }
     @Override
     public StaticAnimation getHitAnimation(StunType stunType) {
-        return this.capabilityState.getProvider().getStunAnimations().get(stunType);
+        return this.capabilityState.getProvider().getStunAnimations().getOrDefault(stunType, Animations.DUMMY_ANIMATION);
     }
 
     @Override
@@ -565,14 +583,15 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     }
     @Override
     public boolean canBlockProjectile(){
-        return this.capabilityState.currentGuardMotion.canBlockProjectile;
+        return this.capabilityState.currentGuardMotion.can_block_projectile;
     }
     @Override
     public float getParryCostMultiply(){return this.capabilityState.currentGuardMotion.parry_cost;}
     @Override
     public StaticAnimation getParryAnimation(int times){
-        StaticAnimation[] parry_animation = this.capabilityState.currentGuardMotion.parry_animation != null ? this.capabilityState.currentGuardMotion.parry_animation :  new StaticAnimation[]{Animations.LONGSWORD_GUARD_ACTIVE_HIT1, Animations.LONGSWORD_GUARD_ACTIVE_HIT2};
-        return parry_animation[times % parry_animation.length];
+        GuardMotion guardMotion = this.capabilityState.currentGuardMotion;
+        List<StaticAnimation> parry_animation = guardMotion.parry_animation != null && !guardMotion.parry_animation.isEmpty() ? this.capabilityState.currentGuardMotion.parry_animation :  List.of(Animations.LONGSWORD_GUARD_ACTIVE_HIT1, Animations.LONGSWORD_GUARD_ACTIVE_HIT2);
+        return parry_animation.get(times % parry_animation.size());
     }
     @Override
     public boolean isBlockableSource(DamageSource damageSource) {
@@ -589,9 +608,6 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     }
     public boolean isParrying(){
         return this.capabilityState.maxParryTimes > 0;
-    }
-    public void cancelBlock(boolean cancel){
-        this.capabilityState.cancel_block = cancel;
     }
     public void setStunImmunityTime(int tick){
         this.capabilityState.stun_immunity_time = tick;
@@ -643,6 +659,22 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     public void setStrafingDirection(float forward, float clockwise){
         this.capabilityState.strafingForward = forward;
         this.capabilityState.strafingClockwise = clockwise;
+    }
+
+    @Override
+    public void actAnimationMotion(AnimationMotionSet motionSet) {
+        this.capabilityState.animationMotion(motionSet);
+    }
+
+    @Override
+    public void actGuardMotion(GuardMotionSet motionSet) {
+        this.capabilityState.guardMotion(motionSet);
+    }
+
+    @Override
+    public void actStrafing(WanderMotionSet wanderMotionSet) {
+        this.capabilityState.strafingMotion(wanderMotionSet);
+
     }
 
     @Override

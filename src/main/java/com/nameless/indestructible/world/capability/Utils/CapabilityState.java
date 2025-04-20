@@ -7,11 +7,9 @@ import com.nameless.indestructible.client.ClientBossInfo;
 import com.nameless.indestructible.client.gui.BossBarGUi;
 import com.nameless.indestructible.data.AdvancedMobpatchReloader;
 import com.nameless.indestructible.server.AdvancedBossInfo;
+import com.nameless.indestructible.world.ai.CombatBehaviors.*;
 import com.nameless.indestructible.world.ai.goal.AdvancedCombatGoal;
 import com.nameless.indestructible.world.ai.goal.GuardGoal;
-import com.nameless.indestructible.world.capability.Utils.BehaviorsUtils.CounterMotion;
-import com.nameless.indestructible.world.capability.Utils.BehaviorsUtils.DamageSourceModifier;
-import com.nameless.indestructible.world.capability.Utils.BehaviorsUtils.GuardMotion;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -42,6 +40,7 @@ import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.gameasset.EpicFightSounds;
 import yesman.epicfight.network.EpicFightNetworkManager;
+import yesman.epicfight.network.server.SPPlayAnimation;
 import yesman.epicfight.network.server.SPSpawnData;
 import yesman.epicfight.particle.EpicFightParticles;
 import yesman.epicfight.particle.HitParticleType;
@@ -62,8 +61,8 @@ import java.util.UUID;
 import static com.nameless.indestructible.main.Indestructible.BOSS_BAR;
 import static com.nameless.indestructible.world.capability.Utils.IAdvancedCapability.*;
 
-public class CapabilityState<T extends MobPatch<?>> {
-    private final AdvancedMobpatchReloader.AdvancedCustomMobPatchProvider provider;
+public class CapabilityState<T extends MobPatch<?>, V extends AdvancedMobpatchReloader.AdvancedCustomMobPatchProvider> {
+    private final V provider;
     private final T mobPatch;
     public GuardMotion currentGuardMotion;
     public GuardMotion specificGuardMotion;
@@ -77,7 +76,6 @@ public class CapabilityState<T extends MobPatch<?>> {
     //block
     private final float staminaLoseMultiply;
     public int block_tick;
-    public boolean cancel_block;
     public int maxParryTimes;
     public int tickSinceLastAction;
     public int tickSinceBreakShield;
@@ -98,7 +96,7 @@ public class CapabilityState<T extends MobPatch<?>> {
     private float lastGetImpact;
     public boolean interrupted;
     public boolean isParried = false;
-    public CapabilityState(AdvancedMobpatchReloader.AdvancedCustomMobPatchProvider provider, T mobPatch){
+    public CapabilityState(V provider, T mobPatch){
         this.provider = provider;
         this.mobPatch = mobPatch;
         this.regenStaminaStandbyTime = provider.getRegenStaminaStandbyTime();
@@ -113,7 +111,7 @@ public class CapabilityState<T extends MobPatch<?>> {
     }
 
 
-    public AdvancedMobpatchReloader.AdvancedCustomMobPatchProvider getProvider(){
+    public V getProvider(){
         return this.provider;
     }
 
@@ -156,16 +154,16 @@ public class CapabilityState<T extends MobPatch<?>> {
         if(!mobPatch.isLogicalClient() ){
            if(mobPatch instanceof IAnimationEventCapability iec) {
                iec.getEventManager().initPassiveEvent(provider.getStunEvent());
-               iec.getEventManager().initAnimationEvent();
+               iec.getEventManager().initActiveEvent();
            }
             if(this.damageSourceModifier != null) this.damageSourceModifier = null;
         }
     }
 
     public void serverStateTick(){
-        //每4tick更新一次boss血条事件
+        //每40tick更新一次boss血条事件
         if(mobPatch instanceof IBossEventCapability ibc){
-            if (ibc.hasBossBar() && mobPatch.getOriginal().tickCount % 4 == 0) ibc.getServerBossInfo().update();
+            if (ibc.hasBossBar() && mobPatch.getOriginal().tickCount % 40 == 0) ibc.getServerBossInfo().update();
         }
 
         if(!(mobPatch instanceof IAdvancedCapability iac)) return;
@@ -347,18 +345,18 @@ public class CapabilityState<T extends MobPatch<?>> {
                 EpicFightParticles.HIT_BLUNT.get().spawnParticleWithArgument(((ServerLevel) mobPatch.getOriginal().level()), HitParticleType.FRONT_OF_EYES, HitParticleType.ZERO, mobPatch.getOriginal(), damageSource.getDirectEntity());
                 //success
                 if (stamina >= 0F) {
-                    float counter_cost = this.counterMotion.cost;
                     RandomSource random = mobPatch.getOriginal().getRandom();
                     mobPatch.rotateTo(damageSource.getDirectEntity(),30F,true);
-                    if (random.nextFloat() < this.counterMotion.chance && stamina >= counter_cost) {
+                    if (this.counterMotion != null && random.nextFloat() < this.counterMotion.chance && stamina >= this.counterMotion.cost) {
+                        float counter_cost = this.counterMotion.cost;
                         if(this.stun_immunity_time > 0){
                             mobPatch.getOriginal().addEffect(new MobEffectInstance(EpicFightMobEffects.STUN_IMMUNITY.get(), this.stun_immunity_time));
                         }
                         iac.setAttackSpeed(this.counterMotion.speed);
-                        mobPatch.playAnimationSynchronized(this.counterMotion.counter,0);
-                        mobPatch.playSound(EpicFightSounds.CLASH.get(), -0.05F, 0.1F);
+                        mobPatch.playAnimationSynchronized(this.counterMotion.counter, this.counterMotion.convert_time);
+                        mobPatch.playSound(animation.isShield ? SoundEvents.SHIELD_BLOCK : EpicFightSounds.CLASH.get(), -0.05F, 0.1F);
                         //this.knockBackEntity(damageSource.getDirectEntity().position(), 0.1F);
-                        if(this.cancel_block){iac.setBlocking(false);}
+                        if(this.counterMotion.cancel_block){iac.setBlocking(false);}
                         iac.setStamina(iac.getStamina() - counter_cost);
                         //counter
                     } else if (this.maxParryTimes > 0){
@@ -407,7 +405,7 @@ public class CapabilityState<T extends MobPatch<?>> {
         if(this.damageSourceModifier != null){
             damageSource.setImpact(mobPatch.getImpact(hand) * damageSourceModifier.impact);
             damageSource.setArmorNegation(Math.min(100, mobPatch.getArmorNegation(hand) * damageSourceModifier.armor_negation));
-            if(damageSourceModifier.stunType != null){damageSource.setStunType(this.damageSourceModifier.stunType);}
+            if(damageSourceModifier.stun_type != null){damageSource.setStunType(this.damageSourceModifier.stun_type);}
         }
     }
 
@@ -420,7 +418,7 @@ public class CapabilityState<T extends MobPatch<?>> {
 
     public void onDeath(){
         if(mobPatch instanceof IAnimationEventCapability iec) {
-            iec.getEventManager().initAnimationEvent();
+            iec.getEventManager().initActiveEvent();
         }
         if(mobPatch instanceof IAdvancedCapability iac) iac.setBlocking(false);
         if(mobPatch instanceof IBossEventCapability iec) {
@@ -439,12 +437,15 @@ public class CapabilityState<T extends MobPatch<?>> {
 
     private void resetWhenStunned(){
         this.tickSinceLastAction = 0;
-        if (this.damageSourceModifier != null) this.damageSourceModifier = null;
         if(mobPatch instanceof IAdvancedCapability iac){
-            iac.setAttackSpeed(1);
+            iac.setDamageSourceModifier(null);
+            iac.setBlocking(false);
+            iac.setAttackSpeed(1F);
+            iac.setHurtResistLevel(2);
         }
-        if(mobPatch instanceof IAnimationEventCapability iec) {
-            iec.getEventManager().initAnimationEvent();
+
+        if(mobPatch instanceof IAnimationEventCapability iec){
+            iec.getEventManager().initActiveEvent();
         }
     }
     public StunType processStun(StunType stunType){
@@ -523,12 +524,58 @@ public class CapabilityState<T extends MobPatch<?>> {
     }
 
     public void onAttackBlocked(LivingEntityPatch<?> livingEntityPatch){
-        if(mobPatch instanceof IAnimationEventCapability iec && iec.getEventManager().hasBlockEvents()){
+        if(mobPatch instanceof IAnimationEventCapability iec && iec.getEventManager().hasBlockedEvents()){
             for(LivingEntityPatchEvent.BlockedEvent event: iec.getEventManager().getBlockedEvents()) {
                 event.testAndExecute(mobPatch, livingEntityPatch.getOriginal(), this.isParried);
-                if(!mobPatch.getOriginal().isAlive() || !iec.getEventManager().hasBlockEvents()){break;}
+                if(!mobPatch.getOriginal().isAlive() || !iec.getEventManager().hasBlockedEvents()){break;}
             }
         }
         this.isParried = false;
+    }
+    public void animationMotion(AnimationMotionSet motionSet){
+        if(mobPatch instanceof IAnimationEventCapability iec){
+            if(motionSet.time_events != null &&  !motionSet.time_events.isEmpty()){
+                for(LivingEntityPatchEvent.TimeStampedEvent event : motionSet.time_events){
+                    iec.getEventManager().addTimeStampedEvent(event);
+                }
+            }
+            if(motionSet.hit_events != null &&  !motionSet.hit_events.isEmpty()){
+                for(LivingEntityPatchEvent.BiEvent event : motionSet.hit_events){
+                    iec.getEventManager().addHitEvent(event);
+                }
+            }
+            if(motionSet.blocked_events != null &&  !motionSet.blocked_events.isEmpty()){
+                for(LivingEntityPatchEvent.BlockedEvent event : motionSet.blocked_events){
+                    iec.getEventManager().addBlockedEvents(event);
+                }
+            }
+        }
+
+        if(mobPatch instanceof IAdvancedCapability iac){
+                iac.setAttackSpeed(motionSet.speed);
+                iac.setBlocking(false);
+                if(motionSet.stamina != 0F) iac.setStamina(iac.getStamina() - motionSet.stamina);
+                iac.setDamageSourceModifier(motionSet.damage_source_modifier);
+        }
+        if(!mobPatch.getEntityState().turningLocked()){mobPatch.getOriginal().lookAt(mobPatch.getTarget(),30F,30F); }
+        mobPatch.playAnimationSynchronized(motionSet.animation, motionSet.convert_time, SPPlayAnimation::new);
+    }
+    public void guardMotion(GuardMotionSet motionSet){
+        if(mobPatch instanceof IAdvancedCapability iac){
+            iac.specificGuardMotion(motionSet.guard_motion);
+            iac.modifyGuardMotion();
+            iac.setBlocking(true);
+            iac.setBlockTick(motionSet.guard_time);
+            iac.setMaxParryTimes(motionSet.parry_times);
+            iac.setStunImmunityTime(motionSet.stun_immunity_time);
+            iac.setCounterMotion(motionSet.counter_motion);
+        }
+    }
+    public void strafingMotion(WanderMotionSet wanderMotionSet){
+            if(mobPatch instanceof IAdvancedCapability iac){
+                iac.setStrafingTime(wanderMotionSet.strafing_time);
+                iac.setInactionTime(wanderMotionSet.inaction_time);
+                iac.setStrafingDirection(wanderMotionSet.forward, wanderMotionSet.clockwise);
+            }
     }
 }

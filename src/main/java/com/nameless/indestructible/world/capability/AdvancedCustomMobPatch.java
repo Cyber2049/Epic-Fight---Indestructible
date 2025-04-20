@@ -5,6 +5,7 @@ import com.nameless.indestructible.client.ClientBossInfo;
 import com.nameless.indestructible.data.AdvancedMobpatchReloader;
 import com.nameless.indestructible.gameasset.GuardAnimations;
 import com.nameless.indestructible.server.AdvancedBossInfo;
+import com.nameless.indestructible.world.ai.CombatBehaviors.*;
 import com.nameless.indestructible.world.ai.goal.AdvancedChasingGoal;
 import com.nameless.indestructible.world.ai.goal.AdvancedCombatGoal;
 import com.nameless.indestructible.world.ai.goal.GuardGoal;
@@ -62,12 +63,13 @@ import yesman.epicfight.world.entity.ai.brain.BrainRecomposer;
 import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Set;
 
 import static com.nameless.indestructible.world.capability.Utils.CapabilityUtils.putEpicFightAttributes;
 
 public class AdvancedCustomMobPatch <T extends PathfinderMob> extends MobPatch<T> implements IAdvancedCapability, IBossEventCapability, IAnimationEventCapability {
-    private final CapabilityState<MobPatch<?>> capabilityState;
+    protected final CapabilityState<MobPatch<?>, ?> capabilityState;
     private AdvancedCustomPatchEventManger eventManger;
     public  boolean hasBossBar;
     public AdvancedBossInfo bossInfo;
@@ -195,11 +197,28 @@ public class AdvancedCustomMobPatch <T extends PathfinderMob> extends MobPatch<T
         EpicFightNetworkManager.sendToAllPlayerTrackingThisEntity(msg, this.original);
     }
 
-    private BehaviorsUtils.GuardMotion getGuardMotion(){
-        if(this.capabilityState.specificGuardMotion != null){
-            return this.capabilityState.specificGuardMotion;
+    private GuardMotion getGuardMotion(){
+        GuardMotion motion = this.capabilityState.getProvider().getGuardMotion();
+        GuardMotion specific = this.capabilityState.specificGuardMotion;
+        if(specific != null){
+            Boolean[] b = this.capabilityState.specificGuardMotion.changeTag;
+            if(b[0]){
+                motion.guard_animation = specific.guard_animation;
+            }
+            if(b[1]){
+                motion.can_block_projectile = specific.can_block_projectile;
+            }
+            if(b[2]){
+                motion.cost = specific.cost;
+            }
+            if(b[3]){
+                motion.parry_cost = specific.parry_cost;
+            }
+            if(b[4]){
+                motion.parry_animation = specific.parry_animation;
+            }
         }
-        return this.capabilityState.getProvider().getGuardMotion();
+        return motion;
     }
     @Override
     public AttackResult tryHurt(DamageSource damageSource, float amount) {
@@ -264,7 +283,7 @@ public class AdvancedCustomMobPatch <T extends PathfinderMob> extends MobPatch<T
     }
     @Override
     public StaticAnimation getHitAnimation(StunType stunType) {
-        return this.capabilityState.getProvider().getStunAnimations().get(stunType);
+        return this.capabilityState.getProvider().getStunAnimations().getOrDefault(stunType, Animations.DUMMY_ANIMATION);
     }
     @Override
     public void onStartTracking(ServerPlayer trackingPlayer) {
@@ -403,24 +422,25 @@ public class AdvancedCustomMobPatch <T extends PathfinderMob> extends MobPatch<T
         return (CustomGuardAnimation) GuardAnimations.MOB_LONGSWORD_GUARD;
     }
     @Override
-    public void specificGuardMotion(@Nullable BehaviorsUtils.GuardMotion guard_motion) {
+    public void specificGuardMotion(@Nullable GuardMotion guard_motion) {
         this.capabilityState.specificGuardMotion = guard_motion;
     }
     @Override
-    public void setCurrentGuardMotion(BehaviorsUtils.GuardMotion guardMotion){
+    public void setCurrentGuardMotion(GuardMotion guardMotion){
         this.capabilityState.currentGuardMotion = guardMotion;
     }
     @Override
     public boolean canBlockProjectile(){
-        return this.capabilityState.currentGuardMotion != null && this.capabilityState.currentGuardMotion.canBlockProjectile;
+        return this.capabilityState.currentGuardMotion != null && this.capabilityState.currentGuardMotion.can_block_projectile;
     }
     @Override
     public float getParryCostMultiply(){return this.capabilityState.currentGuardMotion != null ?  this.capabilityState.currentGuardMotion.parry_cost : 0;}
     @Override
     public StaticAnimation getParryAnimation(int times){
         if(this.capabilityState.currentGuardMotion != null) {
-            StaticAnimation[] parry_animation = this.capabilityState.currentGuardMotion.parry_animation != null ? this.capabilityState.currentGuardMotion.parry_animation : new StaticAnimation[]{Animations.LONGSWORD_GUARD_ACTIVE_HIT1, Animations.LONGSWORD_GUARD_ACTIVE_HIT2};
-            return parry_animation[times % parry_animation.length];
+            GuardMotion guardMotion = this.capabilityState.currentGuardMotion;
+            List<StaticAnimation> parry_animation = guardMotion.parry_animation != null && !guardMotion.parry_animation.isEmpty() ? this.capabilityState.currentGuardMotion.parry_animation :  List.of(Animations.LONGSWORD_GUARD_ACTIVE_HIT1, Animations.LONGSWORD_GUARD_ACTIVE_HIT2);
+            return parry_animation.get(times % parry_animation.size());
         }
         return Animations.DUMMY_ANIMATION;
     }
@@ -431,7 +451,7 @@ public class AdvancedCustomMobPatch <T extends PathfinderMob> extends MobPatch<T
 
     public int getBlockTick(){return this.capabilityState.block_tick;}
     public void setBlockTick(int tick){this.capabilityState.block_tick = tick;}
-    public void setCounterMotion(BehaviorsUtils.CounterMotion counter_motion){
+    public void setCounterMotion(CounterMotion counter_motion){
         this.capabilityState.counterMotion = counter_motion;
     }
     public void setMaxParryTimes(int times){
@@ -439,9 +459,6 @@ public class AdvancedCustomMobPatch <T extends PathfinderMob> extends MobPatch<T
     }
     public boolean isParrying(){
         return this.capabilityState.maxParryTimes > 0;
-    }
-    public void cancelBlock(boolean cancel){
-        this.capabilityState.cancel_block = cancel;
     }
     public void setStunImmunityTime(int tick){
         this.capabilityState.stun_immunity_time = tick;
@@ -496,7 +513,23 @@ public class AdvancedCustomMobPatch <T extends PathfinderMob> extends MobPatch<T
     }
 
     @Override
-    public void setDamageSourceModifier(@Nullable BehaviorsUtils.DamageSourceModifier damageSourceModifier) {
+    public void actAnimationMotion(AnimationMotionSet motionSet) {
+        this.capabilityState.animationMotion(motionSet);
+    }
+
+    @Override
+    public void actGuardMotion(GuardMotionSet motionSet) {
+        this.capabilityState.guardMotion(motionSet);
+    }
+
+    @Override
+    public void actStrafing(WanderMotionSet wanderMotionSet) {
+        this.capabilityState.strafingMotion(wanderMotionSet);
+
+    }
+
+    @Override
+    public void setDamageSourceModifier(@Nullable DamageSourceModifier damageSourceModifier) {
         this.capabilityState.damageSourceModifier = damageSourceModifier;
     }
 }
