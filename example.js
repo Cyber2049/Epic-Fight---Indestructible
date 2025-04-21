@@ -14,7 +14,7 @@ IndestructibleEvents.PatchRegistry(event => {
 )
 
 
-const builder1 = JsHumanoidMobPatchBuilder.builder().setArmature("armature1")
+const JsHumanoidMobPatchBuilder1 = JsHumanoidMobPatchBuilder.builder().setArmature("armature1")
 .setModel("model1")
 .setRenderer("renderer1")
 .addAttributesByMap(attributemap)
