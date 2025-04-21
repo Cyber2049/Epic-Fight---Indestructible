@@ -1,5 +1,7 @@
 package com.nameless.indestructible.api.animation.types;
 
+import dev.latvian.mods.kubejs.typings.Info;
+import dev.latvian.mods.kubejs.typings.Param;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,13 +15,25 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class LivingEntityPatchEvent {
+	@Info(params = {
+			@Param(name = "time", value = "number, when will the event be executed"),
+			@Param(name = "event", value = "Consumer<LivingEntityPatch<?>>, current event")
+	})
 	public static TimeStampedEvent createTimeStampedEvent(float time, Consumer<LivingEntityPatch<?>> event){
 		return new TimeStampedEvent(time, event);
 	}
+	@Info(params = {
+			@Param(name = "time", value = "number, when will the event be executed"),
+			@Param(name = "event", value = "BiConsumer<LivingEntityPatch<?>, Entity>(patch of this entity, entity of target), current event")
+	})
 	public static BiEvent createBiEvent(BiConsumer<LivingEntityPatch<?>, Entity> event){
 		return new BiEvent(event);
 	}
-	public static StunEvent createStunEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, Object object){
+	@Info(params = {
+			@Param(name = "object", value = "stun type, enum or name(String)"),
+			@Param(name = "event", value = "BiConsumer<LivingEntityPatch<?>, Entity>(patch of this entity, entity which stun this mob), current event")
+	})
+	public static StunEvent createStunEvent(Object object, BiConsumer<LivingEntityPatch<?>, Entity> event){
 		StunType stunType = StunType.NONE;
 		if(object instanceof String s){
 			stunType = StunType.valueOf(s.toUpperCase(Locale.ROOT));
@@ -28,7 +42,11 @@ public class LivingEntityPatchEvent {
 		}
 		return new StunEvent(event, stunType.ordinal());
 	}
-	public static BlockedEvent createBlockedEvent(BiConsumer<LivingEntityPatch<?>, Entity> event, boolean isParry){
+	@Info(params = {
+			@Param(name = "isParry", value = "if entity attack is parried by others"),
+			@Param(name = "event", value = "BiConsumer<LivingEntityPatch<?>, Entity>(patch of this entity, entity which blocked this entity's attack), current event")
+	})
+	public static BlockedEvent createBlockedEvent(boolean isParry, BiConsumer<LivingEntityPatch<?>, Entity> event){
 		return new BlockedEvent(event, isParry);
 	}
 	public static class TimeStampedEvent extends LivingEntityPatchEvent implements Comparable<TimeStampedEvent> {
