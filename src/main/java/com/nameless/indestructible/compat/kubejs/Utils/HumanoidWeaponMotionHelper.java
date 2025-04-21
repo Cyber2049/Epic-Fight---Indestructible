@@ -1,6 +1,8 @@
 package com.nameless.indestructible.compat.kubejs.Utils;
 
 import com.mojang.datafixers.util.Pair;
+import dev.latvian.mods.kubejs.typings.Info;
+import dev.latvian.mods.kubejs.typings.Param;
 import yesman.epicfight.api.animation.LivingMotion;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
@@ -15,7 +17,10 @@ public class HumanoidWeaponMotionHelper {
         return new HumanoidWeaponMotionHelper();
     }
 
-
+    @Info(value = "define living motion with specific weapon categories and style in map", params = {
+            @Param(name = "categories", value = "String[], array of weapon categories' name"), @Param(name = "style", value = "String, style name"),
+            @Param(name = "list", value = "list of livingMotion and animation, call LivingMotionHelper.getHelper() to get the map builder, bind animation and living motion to the map, and call createList() to return this map")
+    })
     public HumanoidWeaponMotionHelper addLivingMotions(String[] categories, String style, List<Pair<LivingMotion, StaticAnimation>> list){
         List<WeaponCategory> weaponCategories = new ArrayList<>();
         Arrays.stream(categories).forEach(string -> weaponCategories.add(CapabilityItem.WeaponCategories.valueOf(string.toUpperCase(Locale.ROOT))));

@@ -2,6 +2,8 @@ package com.nameless.indestructible.compat.kubejs.Utils;
 
 import com.google.common.collect.Maps;
 import com.nameless.indestructible.main.Indestructible;
+import dev.latvian.mods.kubejs.typings.Info;
+import dev.latvian.mods.kubejs.typings.Param;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.world.damagesource.StunType;
@@ -14,6 +16,9 @@ public class StunAnimationHelper {
     public static StunAnimationHelper getHelper() {
         return new StunAnimationHelper();
     }
+    @Info(value = "mandatory or alternative method otherwise won't be stunned, bind stun animation to stun type in this map", params = {
+            @Param(name = "object1", value = "stun type, enum or name(string)"), @Param(name = "object2", value = "animation, animation instance or its registry name(String)")
+    })
     public StunAnimationHelper addStunAnimation(Object object1, Object object2){
         StunType stunType = null;
         StaticAnimation animation = null;
@@ -21,13 +26,13 @@ public class StunAnimationHelper {
             stunType = t;
         } else if(object1 instanceof String s){
             stunType = StunType.valueOf(s.toUpperCase(Locale.ROOT));
-        } else Indestructible.LOGGER.info(object1 + " can't be recognized");
+        } else Indestructible.LOGGER.warn(object1 + " can't be recognized");
 
         if(object2 instanceof StaticAnimation a){
             animation = a;
         } else if (object2 instanceof String s) {
             animation = AnimationManager.getInstance().byKeyOrThrow(s);
-        } else Indestructible.LOGGER.info(object2 + " can't be recognized");
+        } else Indestructible.LOGGER.warn(object2 + " can't be recognized");
         if(stunType != null && animation != null)this.stunAnimationMap.put(stunType, animation);
         return this;
     }

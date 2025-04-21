@@ -7,7 +7,7 @@ import com.google.gson.JsonElement;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
 import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
-import com.nameless.indestructible.compat.kubejs.PatchJSPlugin;
+import com.nameless.indestructible.compat.kubejs.JsEventInstance;
 import com.nameless.indestructible.gameasset.GuardAnimations;
 import com.nameless.indestructible.main.Indestructible;
 import com.nameless.indestructible.server.network.SPDatapackSync;
@@ -119,8 +119,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
             }
         }
         if(ModList.get().isLoaded("kubejs")){
-            AdvancedMobPatchProviderEvent event = new AdvancedMobPatchProviderEvent();
-            PatchJSPlugin.REGISTRY.post(event);
+            JsEventInstance.load();
         }
 
     }

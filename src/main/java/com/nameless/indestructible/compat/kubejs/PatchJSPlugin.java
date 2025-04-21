@@ -2,8 +2,9 @@ package com.nameless.indestructible.compat.kubejs;
 
 import com.nameless.indestructible.api.animation.types.LivingEntityPatchEvent;
 import com.nameless.indestructible.compat.kubejs.Utils.*;
-import com.nameless.indestructible.data.AdvancedMobPatchProviderEvent;
-import com.nameless.indestructible.data.JSCustomHumanoidMobPatchProviderBuilder;
+import com.nameless.indestructible.data.JsHumanoidMobPatchProviderBuilder;
+import com.nameless.indestructible.data.JsMobPatchProviderBuilder;
+import com.nameless.indestructible.data.JsMobPatchProviderEvent;
 import com.nameless.indestructible.world.ai.CombatBehaviors.*;
 import dev.latvian.mods.kubejs.KubeJSPlugin;
 import dev.latvian.mods.kubejs.event.EventGroup;
@@ -13,7 +14,7 @@ import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
 
 public class PatchJSPlugin extends KubeJSPlugin {
     public static final EventGroup GROUP = EventGroup.of("IndestructibleEvents");
-    public static final EventHandler REGISTRY = GROUP.server("PatchRegistry", () -> AdvancedMobPatchProviderEvent.class);
+    public static final EventHandler REGISTRY = GROUP.server("PatchRegistry", () -> JsMobPatchProviderEvent.class);
     @Override
     public void registerEvents(){
         GROUP.register();
@@ -21,13 +22,14 @@ public class PatchJSPlugin extends KubeJSPlugin {
     @Override
     public void registerBindings(BindingsEvent event) {
         //provider builder
-        event.add("JSHumanoidBuilder", JSCustomHumanoidMobPatchProviderBuilder.class);
+        event.add("JsHumanoidMobPatchBuilder", JsHumanoidMobPatchProviderBuilder.class);
+        event.add("JsMobPatchBuilder", JsMobPatchProviderBuilder.class);
         //helper
         event.add("AttributeMapHelper", AttributeMapHelper.class);
         event.add("LivingMotionHelper", DefaultAnimationHelper.class);
         event.add("WeaponMotionHelper", HumanoidWeaponMotionHelper.class);
         event.add("GuardMotionHelper", HumanoidGuardMotionHelper.class);
-        event.add("CombatBehaviorHelper", HumanoidCombatBehaviorsHelperHelper.class);
+        event.add("CombatBehaviorHelper", HumanoidCombatBehaviorsHelper.class);
         event.add("StunAnimationHelper", StunAnimationHelper.class);
 
         event.add("EFCombatBehaviors", CombatBehaviors.class);
@@ -44,8 +46,8 @@ public class PatchJSPlugin extends KubeJSPlugin {
         //event
         event.add("PatchEvent", LivingEntityPatchEvent.class);
 
-        event.add("JSCustomHumanoidPatch", JsCustomHumanoidMobPatch.class);
-        //event.add("JSCustomMobPatch", AdvancedCustomMobPatch.class);
+        event.add("JsHumanoidPatch", JsHumanoidMobPatch.class);
+        event.add("JsMobPatch", JsMobPatch.class);
     }
 
 

@@ -2,6 +2,8 @@ package com.nameless.indestructible.compat.kubejs.Utils;
 
 import com.google.common.collect.Maps;
 import com.nameless.indestructible.world.ai.CombatBehaviors.GuardMotion;
+import dev.latvian.mods.kubejs.typings.Info;
+import dev.latvian.mods.kubejs.typings.Param;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.Style;
 import yesman.epicfight.world.capabilities.item.WeaponCategory;
@@ -13,6 +15,10 @@ public class HumanoidGuardMotionHelper {
     public static HumanoidGuardMotionHelper getHelper(){
         return new HumanoidGuardMotionHelper();
     }
+    @Info(value = "define guard motion with specific weapon categories and style in map", params = {
+            @Param(name = "categories", value = "String[], array of weapon categories name"), @Param(name = "style", value = "String, style name"),
+            @Param(name = "motion", value = "GuardMotion, call GuardMotion.create() to return a guard motion, and call the method in it to define its properties")
+    })
     public HumanoidGuardMotionHelper addGuardMotions(String[] categories, String style, GuardMotion motion){
         List<WeaponCategory> weaponCategories = new ArrayList<>();
         Arrays.stream(categories).forEach(string -> weaponCategories.add(CapabilityItem.WeaponCategories.valueOf(string.toUpperCase(Locale.ROOT))));

@@ -44,7 +44,7 @@ public class DamageSourceModifier {
             stunType = t;
         } else if(object instanceof String s){
             stunType = StunType.valueOf(s.toUpperCase(Locale.ROOT));
-        } else Indestructible.LOGGER.info(object + " can't be recognized");
+        } else Indestructible.LOGGER.warn(object + " can't be recognized");
         this.stun_type = stunType;
         return this;
     }

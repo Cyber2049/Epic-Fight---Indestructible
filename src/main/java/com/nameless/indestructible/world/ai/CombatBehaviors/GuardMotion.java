@@ -43,7 +43,7 @@ public class GuardMotion {
             animation = a;
         } else if(object instanceof String s){
             animation = AnimationManager.getInstance().byKeyOrThrow(s);
-        } else Indestructible.LOGGER.info(object + " can't be recognized");
+        } else Indestructible.LOGGER.warn(object + " can't be recognized");
         this.guard_animation = animation;
         this.changeTag[0] = true;
         return this;

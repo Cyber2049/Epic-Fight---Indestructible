@@ -441,7 +441,6 @@ public class CapabilityState<T extends MobPatch<?>, V extends AdvancedMobpatchRe
             iac.setDamageSourceModifier(null);
             iac.setBlocking(false);
             iac.setAttackSpeed(1F);
-            iac.setHurtResistLevel(2);
         }
 
         if(mobPatch instanceof IAnimationEventCapability iec){

@@ -31,7 +31,7 @@ public class CounterMotion {
             animation = a;
         } else if(object instanceof String s){
             animation = AnimationManager.getInstance().byKeyOrThrow(s);
-        } Indestructible.LOGGER.info(object + " can't be recognized");
+        } Indestructible.LOGGER.warn(object + " can't be recognized");
         this.counter = animation;
         return this;
     }

@@ -1,7 +1,7 @@
 package com.nameless.indestructible.compat.kubejs;
 
-import com.nameless.indestructible.data.JSCustomHumanoidMobPatchProviderBuilder;
-import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
+import com.nameless.indestructible.data.JsMobPatchProviderBuilder;
+import com.nameless.indestructible.world.capability.AdvancedCustomMobPatch;
 import com.nameless.indestructible.world.capability.Utils.IAdvancedCapability;
 import com.nameless.indestructible.world.capability.Utils.IAnimationEventCapability;
 import com.nameless.indestructible.world.capability.Utils.IBossEventCapability;
@@ -10,8 +10,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import yesman.epicfight.world.capabilities.entitypatch.Faction;
 import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
 
-public class JsCustomHumanoidMobPatch<T extends PathfinderMob> extends AdvancedCustomHumanoidMobPatch<T> implements IAdvancedCapability, IBossEventCapability, IAnimationEventCapability {
-    public JsCustomHumanoidMobPatch(Faction faction, JSCustomHumanoidMobPatchProviderBuilder.JSCustomHumanoidMobPatchProvider provider) {
+public class JsMobPatch<T extends PathfinderMob> extends AdvancedCustomMobPatch<T> implements IAdvancedCapability, IBossEventCapability, IAnimationEventCapability {
+    public JsMobPatch(Faction faction, JsMobPatchProviderBuilder.JSCustomMobPatchProvider provider) {
         super(faction, provider);
     }
 
