@@ -4,6 +4,36 @@
 
 console.info('test js mob patch')
 
+/*
+IndestructibleEvents.PatchRegistry(event => {
+  event.addHumanoidMobPatch("entity_type1", JsHumanoidMobPatchBuilder1)
+  event.addHumanoidMobPatch("entity_type2", JsHumanoidMobPatchBuilder2)
+  event.addMobPatch("entity_type3", JsMobPatchBuilder3)
+  ......
+  }
+)
+
+
+const builder1 = JsHumanoidMobPatchBuilder.builder().setArmature("armature1")
+.setModel("model1")
+.setRenderer("renderer1")
+.addAttributesByMap(attributemap)
+.addLivingAnimationByList(livingMotionMap)
+.addHumanoidWeaponMotionByMap(humanoidWeaponMotionMap)
+.addHumanoidGuardMotionByMap(humanoidGuardMotionMap)
+.addStunAnimationByMap(stunAniamtion)
+.addCombatBehaviorByMap(combatBehaviorMap)
+
+const attributemap = AttributeMapHelper.getHelper().addAttribute("attribute1", value1).addAttribute("attribute2", value2).createMap()
+const livingMotionMap = LivingMotionHelper.getHelper().addLivingAnimation("livingmotion1", aniamation1).addLivingAnimation("livingmotion2", "animation2").createList()
+const humanoidWeaponMotionMap = WeaponMotionHelper.getHelper().addLivingMotions(["categories1, categories2"], "style1", livingMotionMap).createMap();
+const guardMotion = GuardMotion.create().setCost(1).setGuardAnimation("animation1").canBlockProjectile(true).setParryAnimations(["animation1", "animation2"]).setParryCost(1)
+const humanoidGuardMotionMap = GuardMotionHelper.getHelper().addGuardMotions(["categories1, categories2"], "style1", guardMotion).createMap()
+const stunAniamtion = StunAnimationHelper.getHelper().addStunAnimation("stunType1", "animation1").addStunAnimation("stunType2", "animation2").createMap()
+const behavior = EFCombatBehaviors.builder().newBehaviorSeries(EFBehaviorSeries.builder().weight(1).nextBehavior(EFBehavior.Builder().animationBehavior("animation2").withinEyeHeight()))
+const combatBehaviorMap = CombatBehaviorHelper.getHelper().addCombatBehaviors(["categories1, categories2"], "style1", behavior)
+      */
+
 IndestructibleEvents.PatchRegistry(event => 
   event.addHumanoidMobPatch("minecraft:wither_skeleton", 
     JsHumanoidMobPatchBuilder.builder()
@@ -116,5 +146,6 @@ IndestructibleEvents.PatchRegistry(event =>
         })))
         .process().withinEyeHeight())))
   )
+
 )
                                 
