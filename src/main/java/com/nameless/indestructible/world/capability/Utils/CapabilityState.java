@@ -472,7 +472,6 @@ public class CapabilityState<T extends MobPatch<?>, V extends AdvancedMobpatchRe
         if(stunType != StunType.NONE) {
            resetWhenStunned();
         }
-
         return stunType;
     }
     public void setNeutralized(StunType stunType){

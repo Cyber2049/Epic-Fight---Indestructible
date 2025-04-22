@@ -554,7 +554,7 @@ public class AdvancedMobpatchReloader extends SimpleJsonResourceReloadListener {
     }
 
     public static LivingEntityPatchEvent.BiEvent[] deserializeHitCommandList(ListTag args){
-        LivingEntityPatchEvent.BiEvent[] list = new LivingEntityPatchEvent.BiEvent[0];
+        LivingEntityPatchEvent.BiEvent[] list = new LivingEntityPatchEvent.BiEvent[args.size()];
         for(int k = 0; k < args.size(); k++){
             CompoundTag command = args.getCompound(k);
             boolean execute_at_target = command.contains("execute_at_target") && command.getBoolean("execute_at_target");

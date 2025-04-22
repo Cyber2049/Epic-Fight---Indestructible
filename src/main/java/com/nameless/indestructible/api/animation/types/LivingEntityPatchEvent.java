@@ -59,7 +59,7 @@ public class LivingEntityPatchEvent {
 		}
 
 		public void testAndExecute(LivingEntityPatch<?> entitypatch, float prevElapsed, float elapsed) {
-			if(!entitypatch.isLogicalClient() && !entitypatch.isLogicalClient()) {
+			if(!entitypatch.isLogicalClient() && this.time >= prevElapsed && this.time < elapsed) {
 				this.event.accept(entitypatch);
 			}
 		}

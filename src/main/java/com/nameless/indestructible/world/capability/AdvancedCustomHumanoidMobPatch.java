@@ -433,7 +433,7 @@ public class AdvancedCustomHumanoidMobPatch<T extends PathfinderMob> extends Hum
     }
     @Override
     public StaticAnimation getHitAnimation(StunType stunType) {
-        return this.capabilityState.getProvider().getStunAnimations().getOrDefault(stunType, Animations.DUMMY_ANIMATION);
+        return this.capabilityState.getProvider().getStunAnimations().get(stunType);
     }
 
     @Override
